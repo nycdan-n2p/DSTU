@@ -1,0 +1,162 @@
+{
+  "intro": {
+    "title": "net2phone \"Don't Screw This Up\"",
+    "subtitle": "The ultimate workplace challenge quiz!",
+    "texts": [
+      "Oh, you thought you came here for a nice little meeting update? WRONG! Welcome to net2phone's 'Don't Screw This Up' - the quiz show that's about to test, quiz, and possibly punish you. I'm your delightfully ruthless host, and I'm here to find out just how much you DON'T know. Buckle up, buttercup!",
+      "Surprise! That innocent meeting invite was a trap! Welcome to 'Don't Screw This Up' where we're about to expose just how unprepared you really are. I'm your host, and I've got questions that will make you question everything you thought you knew. Ready to get schooled? Of course you're not!",
+      "Well, well, well... look who showed up thinking this would be easy! Welcome to net2phone's 'Don't Screw This Up' - the quiz show that separates the know-it-alls from the know-nothings. I'm your host, and I'm about to put you through the wringer. Don't say I didn't warn you!",
+      "Did someone tell you this would be fun? They LIED! Welcome to 'Don't Screw This Up' - where overconfidence comes to die. I'm your host, and I've prepared questions specifically designed to humble you. Think you're ready? Think again, genius!",
+      "Congratulations! You've just walked into net2phone's intellectual thunderdome! Welcome to 'Don't Screw This Up' where we turn cocky employees into humble pie. I'm your host, and I'm about to serve you a reality check with a side of embarrassment. Enjoy!",
+      "Oh, you poor, naive soul! You thought this was going to be another boring presentation, didn't you? NOPE! Welcome to 'Don't Screw This Up' - the quiz show that's about to crush your dreams and test your limits. I'm your host, and mercy is not in my vocabulary!",
+      "Alert! Alert! Overconfident employee detected! Welcome to net2phone's 'Don't Screw This Up' - the quiz show that specializes in bringing people down a peg or two. I'm your host, and I've got questions that will make you wish you'd called in sick today. Let the humbling begin!"
+    ]
+  },
+  "sponsors": [
+    {
+      "text": "Today's show is brought to you by net2phone - connecting workplaces around the world! Remember folks, good communication is the key to not screwing things up!"
+    },
+    {
+      "text": "And by our amazing workplace tools - because nothing says productivity like having the right technology to get the job done! Now available with extra reliability so you don't screw this up!"
+    }
+  ],
+  "group_feedback": {
+    "correct": [
+      "Congrats, [name]. Even a broken clock gets it right twice a day.",
+      "Wow, [name]. You actually read the question?",
+      "Look at [name], finally doing something correctly.",
+      "[name], I'm genuinely shocked you got that right.",
+      "Well well, [name] decided to show up today!",
+      "[name], don't let this go to your head - it's probably a fluke.",
+      "Amazing, [name]! Did someone else answer for you?",
+      "[name], you're on fire! Well, lukewarm at best."
+    ],
+    "wrong": [
+      "Yikes, [name]. Did you click with your eyes closed?",
+      "Wrong again, [name]. At least you're consistent.",
+      "[name], blink twice if you're trying.",
+      "Oh [name], that's... that's not even close.",
+      "[name], I have faith in you! Just kidding, I don't.",
+      "Classic [name] move right there.",
+      "[name], are you even paying attention?",
+      "[name], maybe stick to your day job... oh wait."
+    ],
+    "fastest": [
+      "[name] was fastest! Speed over accuracy, I see.",
+      "Lightning fast, [name]! Your finger reflexes are impressive.",
+      "[name] clicked so fast, I'm not sure they read it.",
+      "Fastest finger goes to [name]! Congrats on... clicking quickly?"
+    ],
+    "slowest": [
+      "[name] took their sweet time. We're not getting any younger here!",
+      "[name], this isn't a philosophy exam. Pick an answer!",
+      "While [name] was thinking, I aged three years.",
+      "[name] really pondered that one. Too bad it was still wrong."
+    ]
+  },
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "prompt": "What's the REAL reason most people check their work email on weekends?",
+      "options": [
+        "They're dedicated professionals",
+        "They have separation anxiety from their inbox",
+        "They forgot what actual hobbies look like",
+        "All of the above, and it's depressing"
+      ],
+      "correct_index": 3,
+      "timer": 15,
+      "feedback": {
+        "correct": {
+          "text": "DING DING DING! You've unlocked the sad truth! Yes, it's all of the above, and honestly, I'm impressed you're self-aware enough to admit it. Most people are still pretending they 'love their job' while crying into their weekend coffee."
+        },
+        "wrong": {
+          "text": "Oh honey, NO! You picked the fairy tale answer! Let me guess, you also believe in work-life balance and think HR is there to help you. Bless your optimistic little heart!"
+        }
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "prompt": "Which of these sounds like a crypto buzzword but is actually a cleaning product?",
+      "options": [
+        "Ethereum Classic",
+        "All-Purpose Miracle Foam",
+        "Solana",
+        "Cardano"
+      ],
+      "correct_index": 1,
+      "timer": 12,
+      "feedback": {
+        "correct": {
+          "text": "CORRECT! 'All-Purpose Miracle Foam' is indeed a cleaning product! Unlike crypto, this one might actually clean up your messes instead of creating new ones!"
+        },
+        "wrong": {
+          "text": "WRONG! That's actually a cryptocurrency! Though I understand the confusion - both crypto and cleaning products make bold claims about removing stains from your life!"
+        }
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "prompt": "Complete this LinkedIn post: 'I'm humbled to announce that I've been promoted to Senior _______ at my company!'",
+      "options": [
+        "Coffee Fetcher",
+        "Meeting Attender", 
+        "Buzzword Generator",
+        "Professional Email Sender"
+      ],
+      "correct_index": -1,
+      "timer": 12,
+      "feedback": {
+        "any": {
+          "text": "TRICK QUESTION! They're ALL correct! Every single one of these is basically the same job with different fancy titles. Welcome to corporate America, where we make up important-sounding names for doing absolutely nothing productive!"
+        }
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "prompt": "What's the most honest thing you can say in a job interview?",
+      "options": [
+        "I'm passionate about synergistic solutions",
+        "I need money to survive capitalism",
+        "I love disrupting workflows",
+        "I'm a rockstar ninja guru"
+      ],
+      "correct_index": 1,
+      "timer": 15,
+      "feedback": {
+        "correct": {
+          "text": "FINALLY! Someone who tells the truth! Yes, we all need money to survive this beautiful capitalist hellscape we call society. At least you're honest about it instead of pretending you've always dreamed of optimizing quarterly metrics!"
+        },
+        "wrong": {
+          "text": "Oh no, you picked the corporate buzzword special! Let me guess, you also believe pizza parties are adequate compensation and 'we're like a family here' isn't a red flag the size of Texas!"
+        }
+      }
+    }
+  ],
+  "awards": [
+    {
+      "title": "The 'Participation Trophy' Award",
+      "description": "Congratulations! You showed up and answered questions! In today's work culture, that's apparently worth celebrating. Here's your trophy for doing the absolute minimum - you'll fit right in at most companies!"
+    },
+    {
+      "title": "The 'Brutally Honest' Award", 
+      "description": "Well well well, look who's not afraid to face the harsh realities of working life! You've earned the rare 'Brutally Honest' award. Use this power wisely - or don't, your career is probably doomed anyway!"
+    },
+    {
+      "title": "The 'Corporate Survivor' Award",
+      "description": "Amazing! You've somehow navigated the twisted maze of modern workplace culture without losing your mind completely! This award recognizes your incredible ability to translate corporate speak into actual human language!"
+    },
+    {
+      "title": "Fastest Finger",
+      "description": "Lightning reflexes! You clicked faster than a CEO abandons company values during a crisis. Your speed is impressive, even if your accuracy needs work!"
+    },
+    {
+      "title": "Most Confidently Wrong",
+      "description": "Wow! You answered every question with the confidence of a consultant selling blockchain solutions to a bakery. Wrong, but with style!"
+    },
+    {
+      "title": "The Overthinker",
+      "description": "You took so long to answer, we started a small business, ran it into the ground, and blamed millennials. But hey, at least you were thorough!"
+    }
+  ]
+}
