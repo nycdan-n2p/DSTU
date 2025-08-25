@@ -141,6 +141,12 @@ export const SponsorManager: React.FC<SponsorManagerProps> = ({
   };
 
   const handleSaveSponsor = async () => {
+    // Validate session ID first
+    if (!sessionId || sessionId.trim() === '') {
+      setError('Invalid session. Please refresh the page and try again.');
+      return;
+    }
+    
     if (!generatedMessage.trim()) {
       setError('Please generate or enter a sponsor message before saving.');
       return;
@@ -156,6 +162,7 @@ export const SponsorManager: React.FC<SponsorManagerProps> = ({
         if (!imageUrl) return; // Stop if image upload failed
       }
 
+      console.log('💾 Saving sponsor with session ID:', sessionId);
       await onAddSponsor(generatedMessage.trim(), imageUrl);
       
       // Clear form after successful save

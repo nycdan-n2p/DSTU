@@ -734,6 +734,12 @@ export const HostGame: React.FC<HostGameProps> = ({
   const handleCsvQuestionsUploaded = async (uploadedQuestions: UploadedQuestion[]) => {
     console.log('📤 Saving uploaded questions:', uploadedQuestions.length);
     
+    // Validate session ID first
+    if (!sessionId || sessionId.trim() === '') {
+      alert('Invalid session. Please refresh the page and try again.');
+      return;
+    }
+    
     try {
       // Convert uploaded questions to the format expected by the database
       const questionsToInsert = uploadedQuestions.map(q => ({
@@ -807,7 +813,10 @@ export const HostGame: React.FC<HostGameProps> = ({
   };
 
   const loadCustomQuestions = async () => {
-    if (!sessionId) return;
+    if (!sessionId || sessionId.trim() === '') {
+      console.warn('⚠️ Cannot load custom questions - invalid session ID');
+      return;
+    }
     
     try {
       const { data, error } = await supabase

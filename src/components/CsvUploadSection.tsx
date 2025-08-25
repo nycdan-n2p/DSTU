@@ -339,6 +339,13 @@ export const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
 
   const handleSaveQuestions = async () => {
     const questionsToSave = uploadedQuestions.filter(q => q.hasWrongAnswers);
+    
+    // Validate session ID first
+    if (!sessionId || sessionId.trim() === '') {
+      setSaveError('Invalid session. Please refresh the page and try again.');
+      return;
+    }
+    
     if (questionsToSave.length === 0) {
       setSaveError('No questions with complete answers to save');
       return;
@@ -351,7 +358,8 @@ export const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
       console.log('💾 Processing questions for save:', {
         totalQuestions: questionsToSave.length,
         questionsWithImages: questionsToSave.filter(q => q.selectedImageFile).length,
-        sessionId: sessionId
+        sessionId: sessionId,
+        sessionIdValid: !!sessionId && sessionId.trim() !== ''
       });
 
       // Process each question and upload images if needed

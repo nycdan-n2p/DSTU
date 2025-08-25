@@ -179,6 +179,13 @@ export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ sessionId, onQ
 
   const handleSaveQuestion = async () => {
     setError(null);
+    
+    // Validate session ID first
+    if (!sessionId || sessionId.trim() === '') {
+      setError('Invalid session. Please refresh the page and try again.');
+      return;
+    }
+    
     if (!prompt.trim() || !correctAnswer.trim() || wrongAnswers.length === 0) {
       setError('Please generate wrong answers before saving the question.');
       return;
@@ -199,6 +206,8 @@ export const QuestionCreator: React.FC<QuestionCreatorProps> = ({ sessionId, onQ
 
     setIsSaving(true);
     try {
+      console.log('💾 Saving question with session ID:', sessionId);
+      
       const { data, error: dbError } = await supabase
         .from('custom_questions')
         .insert({

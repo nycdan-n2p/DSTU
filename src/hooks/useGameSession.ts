@@ -826,7 +826,9 @@ export const useGameSession = (sessionId?: string) => {
 
   // Add custom sponsor
   const addCustomSponsor = useCallback(async (text: string, imageUrl?: string | null) => {
-    if (!sessionId) return;
+    if (!sessionId || sessionId.trim() === '') {
+      throw new Error('Invalid session ID. Please refresh the page and try again.');
+    }
 
     try {
       console.log('📺 Adding custom sponsor:', { text, imageUrl });
