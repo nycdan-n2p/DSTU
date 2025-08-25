@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { GameButton } from '../GameButton';
-import { AdminControls } from '../AdminControls';
 import { SponsorManager } from '../SponsorManager';
 import { CustomSponsor } from '../../types/game';
 import { supabase } from '../../lib/supabase';
@@ -20,8 +19,6 @@ interface QuestionSetupSlideProps {
   onDeleteSponsor: (sponsorId: string) => Promise<void>;
   onUpdateSponsorBreaks: (numBreaks: number) => Promise<void>;
   onSponsorsChanged: () => void;
-  showPoints?: boolean;
-  onTogglePoints?: () => void;
 }
 
 export const QuestionSetupSlide: React.FC<QuestionSetupSlideProps> = ({
@@ -37,9 +34,7 @@ export const QuestionSetupSlide: React.FC<QuestionSetupSlideProps> = ({
   onAddSponsor,
   onDeleteSponsor,
   onUpdateSponsorBreaks,
-  onSponsorsChanged,
-  showPoints = true,
-  onTogglePoints
+  onSponsorsChanged
 }) => {
   useEffect(() => {
     console.log('📝 Question Setup Slide loaded with questions:', customQuestions);
@@ -98,8 +93,7 @@ export const QuestionSetupSlide: React.FC<QuestionSetupSlideProps> = ({
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
+        <div className="max-w-6xl mx-auto">
             {/* Question Creation Options */}
             <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-6 border border-white/30 mb-6">
               <h3 className="text-2xl font-bold text-white mb-4">Create Questions</h3>
@@ -298,54 +292,8 @@ export const QuestionSetupSlide: React.FC<QuestionSetupSlideProps> = ({
                 </div>
               </div>
             )}
-          </div>
 
-          <div className="lg:col-span-1">
-            <AdminControls
-              onRestartGame={onRestartGame}
-              playerCount={0}
-              currentPhase="question_setup"
-              currentQuestion={0}
-              totalQuestions={customQuestions.length}
-              showPoints={showPoints}
-              onTogglePoints={onTogglePoints}
-            />
 
-            {/* Instructions */}
-            <div className="mt-6 bg-black/40 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-              <h4 className="text-lg font-bold text-yellow-400 mb-3">How it works:</h4>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
-                <div>
-                  <h5 className="font-bold text-green-400 mb-2 flex items-center gap-1">
-                    <Plus className="w-4 h-4" />
-                    Manual Creation:
-                  </h5>
-                  <ol className="space-y-1 ml-4">
-                    <li>1. Click "Add Question"</li>
-                    <li>2. Enter question and correct answer</li>
-                    <li>3. Choose sarcasm level (1-10)</li>
-                    <li>4. Let AI generate wrong answers</li>
-                    <li>5. Save and repeat</li>
-                  </ol>
-                </div>
-                
-                <div>
-                  <h5 className="font-bold text-purple-400 mb-2 flex items-center gap-1">
-                    <FileText className="w-4 h-4" />
-                    CSV Upload:
-                  </h5>
-                  <ol className="space-y-1 ml-4">
-                    <li>1. Prepare CSV with questions</li>
-                    <li>2. Upload file (auto-parsed)</li>
-                    <li>3. Set global sarcasm level</li>
-                    <li>4. Generate missing wrong answers</li>
-                    <li>5. Save all questions at once</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
