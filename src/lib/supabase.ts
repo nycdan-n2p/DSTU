@@ -53,15 +53,31 @@ export const supabase = createClient(
 });
 
 // Test the connection and log results
-supabase.from('game_sessions').select('count').limit(1).then(
-  ({ data, error }) => {
+const testConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('game_sessions').select('count').limit(1);
     if (error) {
       console.error('❌ Supabase connection test failed:', error);
+      console.warn('🔧 Troubleshooting steps:');
+      console.warn('1. Check if your Supabase project is active (not paused)');
+      console.warn('2. Verify VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env');
+      console.warn('3. Ensure Realtime is enabled in Supabase dashboard');
+      console.warn('4. Check your internet connection');
     } else {
       console.log('✅ Supabase connection test successful');
     }
+  } catch (networkError) {
+    console.error('❌ Network error connecting to Supabase:', networkError);
+    console.warn('🌐 This appears to be a network connectivity issue.');
+    console.warn('Please check:');
+    console.warn('- Your internet connection');
+    console.warn('- Firewall/VPN settings');
+    console.warn('- Supabase project status at https://supabase.com/dashboard');
   }
-);
+};
+
+// Test connection with better error handling
+testConnection();
 
 export type Database = {
   public: {

@@ -108,11 +108,19 @@ export const useRealtimeSync = ({
         throw new Error('Supabase configuration missing. Please check your .env file.');
       }
       
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('game_sessions')
-        .select('*')
-        .eq('id', sessionId)
-        .single();
+      let sessionData, sessionError;
+      try {
+        const result = await supabase
+          .from('game_sessions')
+          .select('*')
+          .eq('id', sessionId)
+          .single();
+        sessionData = result.data;
+        sessionError = result.error;
+      } catch (networkError) {
+        console.error('❌ Network error fetching session:', networkError);
+        throw new Error('Network connection failed. Please check your internet connection and try again.');
+      }
 
       if (sessionError) {
         console.error('❌ Failed to fetch session state:', {
@@ -122,13 +130,28 @@ export const useRealtimeSync = ({
           hint: sessionError.hint,
           code: sessionError.code
         });
-        throw new Error(`Database error: ${sessionError.message}`);
+        
+        if (sessionError.message?.includes('Failed to fetch')) {
+          throw new Error('Unable to connect to the game server. Please check your internet connection and refresh the page.');
+        } else {
+          throw new Error(`Database error: ${sessionError.message}`);
+        }
       }
 
-      const { data: playersData, error: playersError } = await supabase
-        .from('players')
-        .select('*')
-        .eq('session_id', sessionId);
+      let playersData, playersError;
+      try {
+        const result = await supabase
+          .from('players')
+          .select('*')
+          .eq('session_id', sessionId);
+        playersData = result.data;
+        playersError = result.error;
+      } catch (networkError) {
+        console.error('❌ Network error fetching players:', networkError);
+        // Don't throw here, just log the error and continue with empty players
+        playersData = [];
+        playersError = null;
+      }
 
       if (playersError) {
         console.error('❌ Failed to fetch players:', playersError);

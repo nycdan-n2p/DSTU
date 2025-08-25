@@ -686,14 +686,26 @@ export const useGameSession = (sessionId?: string) => {
       if (updates.question_start_time !== undefined) playerUpdates.question_start_time = updates.question_start_time;
       if (updates.has_submitted !== undefined) playerUpdates.has_submitted = updates.has_submitted;
 
-      const { error } = await supabase
-        .from('players')
-        .update(playerUpdates)
-        .eq('id', playerId);
+      let error;
+      try {
+        const result = await supabase
+          .from('players')
+          .update(playerUpdates)
+          .eq('id', playerId);
+        error = result.error;
+      } catch (networkError) {
+        console.error('❌ Network error updating player session:', networkError);
+        throw new Error('Network connection failed. Unable to update player status.');
+      }
 
       if (error) {
         console.error('❌ Failed to update player session:', error);
-        throw new Error(`Failed to update player: ${error.message}`);
+        
+        if (error.message?.includes('Failed to fetch')) {
+          throw new Error('Failed to update player: Network connection lost. Please check your internet connection.');
+        } else {
+          throw new Error(`Failed to update player: ${error.message}`);
+        }
       }
       
       console.log('✅ Player session updated successfully');

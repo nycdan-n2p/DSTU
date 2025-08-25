@@ -137,13 +137,19 @@ export const PlayerGame: React.FC = () => {
         });
         console.log('💓 Heartbeat sent for player:', playerName);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ Failed to send heartbeat:', {
-          error: error instanceof Error ? error.message : error,
+          error: errorMessage,
           playerName,
           playerId,
           hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
           hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
         });
+        
+        // If it's a network error, don't spam the console
+        if (errorMessage.includes('Network connection')) {
+          console.warn('⚠️ Player heartbeat failed due to network issues. Will retry...');
+        }
       }
     };
 

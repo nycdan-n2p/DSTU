@@ -212,6 +212,19 @@ export const JumbotronDisplay: React.FC = () => {
           <h1 className="text-3xl font-bold mb-4">Connection Error</h1>
           <p className="text-xl mb-4">{combinedError}</p>
           
+          {/* Network troubleshooting info */}
+          {combinedError.includes('Failed to fetch') || combinedError.includes('Network connection') ? (
+            <div className="mb-6 bg-red-500/20 rounded-lg p-4 border border-red-400/50 max-w-md mx-auto">
+              <h3 className="text-lg font-bold mb-2">Network Issue Detected</h3>
+              <div className="text-sm text-red-200 text-left space-y-1">
+                <p>• Check your internet connection</p>
+                <p>• Verify Supabase project is active</p>
+                <p>• Ensure no firewall is blocking the connection</p>
+                <p>• Try refreshing the page</p>
+              </div>
+            </div>
+          ) : null}
+          
           {/* Connection Status */}
           <div className="mb-4 flex items-center justify-center gap-2">
             <div className={`w-3 h-3 rounded-full ${
