@@ -29,16 +29,17 @@ interface HostGameProps {
   onBackToDashboard?: () => void;
   existingSessionId?: string | null;
   startInQuestionCreator?: boolean; // NEW: start directly in question creator
+  quizTitle?: string; // NEW: direct quiz title prop
 }
 
 export const HostGame: React.FC<HostGameProps> = ({ 
   onBackToDashboard,
   existingSessionId,
-  startInQuestionCreator = false
+  startInQuestionCreator = false,
+  quizTitle
 }) => {
   const { user, signOut } = useAuth();
-  const [searchParams] = useSearchParams();
-  const initialTitle = searchParams.get('title') || 'Untitled Quiz';
+  const initialTitle = quizTitle || 'Untitled Quiz';
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [selectedIntroText, setSelectedIntroText] = useState<string>('');
   const [currentPhase, setCurrentPhase] = useState<GamePhase>('welcome');

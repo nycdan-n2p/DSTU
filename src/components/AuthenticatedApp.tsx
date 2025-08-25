@@ -9,8 +9,8 @@ export const AuthenticatedApp: React.FC = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const sessionParam = searchParams.get('session');
-  const titleParam = searchParams.get('title') || '';
   const [showCreateQuiz, setShowCreateQuiz] = useState(!!sessionParam);
+  const [quizTitle, setQuizTitle] = useState<string>('');
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -39,6 +39,7 @@ export const AuthenticatedApp: React.FC = () => {
         onBackToDashboard={() => setShowCreateQuiz(false)}
         existingSessionId={sessionParam}
         startInQuestionCreator={true}
+        quizTitle={quizTitle}
       />
     );
   }
@@ -49,9 +50,7 @@ export const AuthenticatedApp: React.FC = () => {
       onCreateNewQuiz={() => {
         const title = prompt('Name your quiz:', 'My Fun Quiz');
         if (title === null) return; // cancelled
-        const params = new URLSearchParams(window.location.search);
-        params.set('title', title || 'Untitled Quiz');
-        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+        setQuizTitle(title || 'Untitled Quiz');
         setShowCreateQuiz(true);
       }}
     />
