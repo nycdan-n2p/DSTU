@@ -298,6 +298,12 @@ export const HostGame: React.FC<HostGameProps> = ({
   };
 
   const initializeSession = async () => {
+    // Prevent duplicate session creation (e.g., from React StrictMode)
+    if (sessionId || existingSessionId) {
+      console.log('🔄 Session already exists, skipping creation:', sessionId || existingSessionId);
+      return;
+    }
+    
     try {
       // If we have an existing session ID, try to load it
       if (existingSessionId) {
