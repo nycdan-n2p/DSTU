@@ -311,6 +311,7 @@ export const HostGame: React.FC<HostGameProps> = ({
       console.log('✅ Created session:', newSessionId);
     } catch (error) {
       console.error('❌ Failed to create session:', error);
+      alert(`Failed to create quiz "${initialTitle}": ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   };
 
