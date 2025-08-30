@@ -626,16 +626,41 @@ export const useGameSession = (sessionId?: string) => {
       if (shuffledOptions !== undefined) updates.current_question_options_shuffled = shuffledOptions;
       if (numSponsorBreaks !== undefined) updates.num_sponsor_breaks = numSponsorBreaks;
 
-      const { data, error } = await supabase
+      // Primary attempt including all fields
+      let { data, error } = await supabase
         .from('game_sessions')
         .update(updates)
         .eq('id', session.id)
         .select()
         .single();
 
+      // Fallback: retry without optional columns that may not exist in DB
       if (error) {
-        console.error('❌ Failed to update session:', error);
-        throw new Error(`Failed to update session: ${error.message}`);
+        const msg = error?.message || '';
+        console.warn('⚠️ Session update failed, attempting reduced payload:', msg);
+
+        // Build a reduced update omitting potentially missing columns
+        const reducedUpdates: any = { current_phase: updates.current_phase };
+        if (updates.current_question !== undefined) reducedUpdates.current_question = updates.current_question;
+        if (updates.question_start_time !== undefined) reducedUpdates.question_start_time = updates.question_start_time;
+        // Intentionally omit current_question_options_shuffled and num_sponsor_breaks
+
+        const retry = await supabase
+          .from('game_sessions')
+          .update(reducedUpdates)
+          .eq('id', session.id)
+          .select()
+          .single();
+
+        data = retry.data as any;
+        error = retry.error as any;
+
+        if (error) {
+          console.error('❌ Reduced payload update also failed:', error);
+          throw new Error(`Failed to update session: ${error.message}`);
+        } else {
+          console.warn('✅ Session updated with reduced payload (schema may be missing optional columns).');
+        }
       }
       
       console.log('✅ Session updated successfully:', data);
