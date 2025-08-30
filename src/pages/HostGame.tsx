@@ -237,7 +237,7 @@ export const HostGame: React.FC<HostGameProps> = ({
       // Clear shuffled data when not in question phase
       setShuffledHostQuestionData(null);
     }
-  }, [currentPhase, currentQuestionIndex, shuffledHostQuestionData]);
+  }, [currentPhase, currentQuestionIndex, shuffledHostQuestionData, session?.current_question_options_shuffled, session?.question_start_time, updateSessionPhase]);
 
   // Debug logging
   useEffect(() => {
