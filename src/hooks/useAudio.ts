@@ -23,7 +23,7 @@ export const useAudio = () => {
   // Clear timeout helper
   const clearCurrentTimeout = useCallback(() => {
     if (timeoutRef.current !== null) {
-      window.clearTimeout(timeoutRef.current);
+      window.clearTimeout.bind(window)(timeoutRef.current);
       timeoutRef.current = null;
     }
   }, []);
@@ -162,7 +162,7 @@ export const useAudio = () => {
           // Play next in queue with proper timeout handling
           if (audioQueueRef.current.length > 0 && isMountedRef.current) {
             const nextText = audioQueueRef.current.shift()!;
-            timeoutRef.current = window.setTimeout(() => {
+            timeoutRef.current = window.setTimeout.bind(window)(() => {
               if (isMountedRef.current) {
                 playAudio(nextText);
               }

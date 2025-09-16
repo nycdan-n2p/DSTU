@@ -39,7 +39,7 @@ export const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive, clas
 
   const clearCurrentInterval = useCallback(() => {
     if (intervalRef.current !== null) {
-      window.clearInterval(intervalRef.current);
+      window.clearInterval.bind(window)(intervalRef.current);
       intervalRef.current = null;
     }
   }, []);
@@ -55,7 +55,7 @@ export const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive, clas
 
     console.log('▶️ Timer started with duration:', duration);
 
-    intervalRef.current = window.setInterval(() => {
+    intervalRef.current = window.setInterval.bind(window)(() => {
       if (!isMountedRef.current) {
         clearCurrentInterval();
         return;
@@ -69,7 +69,7 @@ export const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive, clas
           // Clear interval before calling onTimeUp to prevent race conditions
           clearCurrentInterval();
           // Use setTimeout to avoid calling handleTimeUp during render
-          window.setTimeout(() => {
+          window.setTimeout.bind(window)(() => {
             if (isMountedRef.current) {
               handleTimeUp();
             }
