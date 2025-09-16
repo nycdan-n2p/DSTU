@@ -95,7 +95,19 @@ export const PlayerGame: React.FC = () => {
       sessionQuestionStartTime: session?.question_start_time
     });
     
-    if (playerId && players.length > 0) {
+    // ✅ FIXED: Always use session data as the authoritative source for game state
+    if (session) {
+      console.log('✅ PlayerGame: Using session data as authoritative source');
+      setPlayerPhase(session.current_phase || 'waiting');
+      setPlayerQuestion(session.current_question || 0);
+      setPlayerQuestionStartTime(session.question_start_time || null);
+      
+      console.log('✅ PlayerGame: Updated player state from session data:', {
+        phase: session.current_phase || 'waiting',
+        question: session.current_question || 0,
+        questionStartTime: session.question_start_time || null
+      });
+    } else if (playerId && players.length > 0) {
       const currentPlayer = players.find(p => p.id === playerId);
       console.log('👤 PlayerGame: Looking for player in array:', {
         playerId,
@@ -142,18 +154,6 @@ export const PlayerGame: React.FC = () => {
         console.log('⚠️ PlayerGame: Player not found in players array');
         console.log('👥 PlayerGame: Available players:', players.map(p => ({ id: p.id, name: p.name })));
       }
-    } else if (session) {
-      // Fallback to global session when no individual player data
-      console.log('⚠️ PlayerGame: No playerId or empty players array, using global session fallback');
-      setPlayerPhase(session.current_phase || 'waiting');
-      setPlayerQuestion(session.current_question || 0);
-      setPlayerQuestionStartTime(session.question_start_time || null);
-      
-      console.log('✅ PlayerGame: Updated player state from global session fallback:', {
-        phase: session.current_phase || 'waiting',
-        question: session.current_question || 0,
-        questionStartTime: session.question_start_time || null
-      });
     } else {
       console.log('⚠️ PlayerGame: No session data available');
     }
