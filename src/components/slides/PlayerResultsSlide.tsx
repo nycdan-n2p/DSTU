@@ -68,8 +68,8 @@ export const PlayerResultsSlide: React.FC<PlayerResultsSlideProps> = ({
       
       if (playerCorrect) {
         setPlayerResult('correct');
-        // ✅ NEW: Get points earned from the answer data
-        setPointsEarned(playerCorrect.pointsEarned || 0);
+        // ✅ FIXED: Get points earned from database or fallback to client calculation
+        setPointsEarned(playerCorrect.points_earned || playerCorrect.pointsEarned || 0);
       } else if (playerWrong) {
         setPlayerResult('wrong');
         setPointsEarned(0); // Wrong answers get 0 points

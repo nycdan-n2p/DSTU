@@ -470,6 +470,7 @@ export const useGameSession = (sessionId?: string) => {
               answer: answer.toString(),
               is_correct: isCorrect,
               response_time: responseTime,
+              points_earned: pointsEarned,
               answered_at: new Date().toISOString()
             });
           

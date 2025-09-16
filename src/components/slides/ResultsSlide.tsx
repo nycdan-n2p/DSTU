@@ -228,12 +228,17 @@ export const ResultsSlide: React.FC<ResultsSlideProps> = ({
 
   // ✅ FIXED: Helper function to get points earned for display
   const getPointsEarned = (player: any) => {
-    // The processed data should already include pointsEarned
+    // Check if points_earned is available from the database
+    if (player.points_earned !== undefined) {
+      return player.points_earned;
+    }
+    
+    // Legacy fallback for pointsEarned (client-side calculated)
     if (player.pointsEarned !== undefined) {
       return player.pointsEarned;
     }
     
-    // Fallback calculation if needed
+    // Final fallback calculation if needed
     if (player.response_time && player.is_correct) {
       const basePoints = 1000;
       const timePenalty = Math.floor(player.response_time / 1000) * 10;

@@ -164,6 +164,7 @@ export type Database = {
           is_correct: boolean;
           response_time: number;
           answered_at: string;
+          points_earned: number;
         };
         Insert: {
           id?: string;
@@ -174,6 +175,7 @@ export type Database = {
           is_correct: boolean;
           response_time: number;
           answered_at?: string;
+          points_earned?: number;
         };
         Update: {
           id?: string;
@@ -184,6 +186,7 @@ export type Database = {
           is_correct?: boolean;
           response_time?: number;
           answered_at?: string;
+          points_earned?: number;
         };
       };
       custom_questions: {
