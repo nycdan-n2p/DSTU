@@ -52,6 +52,7 @@ export const useRealtimeSync = ({
   const isMountedRef = useRef<boolean>(true);
   const telemetryRef = useRef<TelemetryData[]>([]);
   const isReconnectingRef = useRef<boolean>(false);
+  const connectionStableRef = useRef<boolean>(false);
 
   // Track component mount status
   useEffect(() => {
