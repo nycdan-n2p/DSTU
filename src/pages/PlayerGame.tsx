@@ -328,67 +328,9 @@ export const PlayerGame: React.FC = () => {
           });
         }
       } else {
-        // ✅ NEW: Explicitly fetch shuffled options if not available or stale
-        console.log('🔍 Player: Shuffled options not available or stale, fetching directly from database');
-        
-        const fetchShuffledOptions = async () => {
-          try {
-            const { data: sessionData, error } = await supabase
-              .from('game_sessions')
-              .select('current_question, current_question_options_shuffled')
-              .eq('id', sessionId!)
-              .single();
-
-            if (error) {
-              console.error('❌ Failed to fetch shuffled options:', error);
-              return;
-            }
-
-            console.log('📊 Fetched session data:', sessionData);
-
-            if (sessionData?.current_question_options_shuffled && 
-                sessionData.current_question === playerQuestion) {
-              
-              const currentQuestions = getCurrentQuestions;
-              const currentQuestion = currentQuestions[playerQuestion];
-              
-              if (currentQuestion && currentQuestion.options && Array.isArray(currentQuestion.options)) {
-                const questionId = currentQuestion.id || `${playerQuestion}-${currentQuestion.prompt}`;
-                const shuffled = sessionData.current_question_options_shuffled;
-                
-                // Find the new index of the correct answer based on the shuffled options
-                let newCorrectIndex = 0;
-                if (currentQuestion.correct_index !== undefined && currentQuestion.correct_index >= 0 && currentQuestion.correct_index < currentQuestion.options.length) {
-                  const correctOption = currentQuestion.options[currentQuestion.correct_index];
-                  newCorrectIndex = shuffled.findIndex(option => option === correctOption);
-                  if (newCorrectIndex === -1) {
-                    newCorrectIndex = 0; // Fallback if not found
-                  }
-                } else if (currentQuestion.correct_index === -1) {
-                  newCorrectIndex = -1; // Trick question
-                }
-                
-                setShuffledQuestionData({
-                  questionId,
-                  shuffledOptions: shuffled,
-                  shuffledCorrectAnswerIndex: newCorrectIndex
-                });
-                
-                console.log('✅ Player: Using fetched shuffled options:', {
-                  questionId,
-                  shuffled: shuffled,
-                  newCorrectIndex: newCorrectIndex
-                });
-              }
-            } else {
-              console.log('⚠️ Player: No valid shuffled options found in database for current question');
-            }
-          } catch (error) {
-            console.error('❌ Error fetching shuffled options:', error);
-          }
-        };
-
-        fetchShuffledOptions();
+        // ✅ FIXED: Wait for shuffled options to arrive via realtime instead of fetching
+        console.log('⏳ Player: Waiting for shuffled options to arrive via realtime sync');
+        // Don't set shuffledQuestionData - wait for next realtime update
       }
     } else {
       // Clear shuffled data when not in question phase
