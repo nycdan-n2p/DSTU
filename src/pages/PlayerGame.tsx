@@ -361,32 +361,36 @@ export const PlayerGame: React.FC = () => {
         if (currentQuestion && currentQuestion.options && Array.isArray(currentQuestion.options)) {
           const questionId = currentQuestion.id || `${playerQuestion}-${currentQuestion.prompt}`;
           
-          // ✅ Use shuffled options from session, if available
-          const shuffled = session.current_question_options_shuffled;
-          
-          // Find the new index of the correct answer based on the shuffled options
-          let newCorrectIndex = 0;
-          if (currentQuestion.correct_index !== undefined && currentQuestion.correct_index >= 0 && currentQuestion.correct_index < currentQuestion.options.length) {
-            const correctOption = currentQuestion.options[currentQuestion.correct_index];
-            newCorrectIndex = shuffled.findIndex(option => option === correctOption);
-            if (newCorrectIndex === -1) {
-              newCorrectIndex = 0; // Fallback if not found (shouldn't happen if options are consistent)
+          // ✅ ENHANCED: Only update if this is genuinely new shuffled data
+          if (!shuffledQuestionData || shuffledQuestionData.questionId !== questionId) {
+            const shuffled = session.current_question_options_shuffled;
+            
+            // Find the new index of the correct answer based on the shuffled options
+            let newCorrectIndex = 0;
+            if (currentQuestion.correct_index !== undefined && currentQuestion.correct_index >= 0 && currentQuestion.correct_index < currentQuestion.options.length) {
+              const correctOption = currentQuestion.options[currentQuestion.correct_index];
+              newCorrectIndex = shuffled.findIndex(option => option === correctOption);
+              if (newCorrectIndex === -1) {
+                newCorrectIndex = 0; // Fallback if not found (shouldn't happen if options are consistent)
+              }
+            } else if (currentQuestion.correct_index === -1) {
+              newCorrectIndex = -1; // Trick question
             }
-          } else if (currentQuestion.correct_index === -1) {
-            newCorrectIndex = -1; // Trick question
+            
+            setShuffledQuestionData({
+              questionId,
+              shuffledOptions: shuffled,
+              shuffledCorrectAnswerIndex: newCorrectIndex
+            });
+            console.log('✅ PlayerGame: Set shuffled options from session:', {
+              questionId,
+              shuffledOptions: shuffled,
+              newCorrectIndex,
+              originalCorrectIndex: currentQuestion.correct_index
+            });
+          } else {
+            console.log('📺 PlayerGame: Shuffled options unchanged, skipping update');
           }
-          
-          setShuffledQuestionData({
-            questionId,
-            shuffledOptions: shuffled,
-            shuffledCorrectAnswerIndex: newCorrectIndex
-          });
-          console.log('✅ PlayerGame: Set shuffled options from session:', {
-            questionId,
-            shuffledOptions: shuffled,
-            newCorrectIndex,
-            originalCorrectIndex: currentQuestion.correct_index
-          });
         } else {
           console.log('⚠️ PlayerGame: Current question not found or invalid options');
         }
@@ -401,16 +405,12 @@ export const PlayerGame: React.FC = () => {
       }
     } else {
       // Clear shuffled data when not in question phase
-      setShuffledQuestionData(null);
-      console.log('🔀 PlayerGame: Not in question phase or no start time, clearing shuffled data');
-      console.log('🔀 PlayerGame: Phase check details:', {
-        playerPhase,
-        isQuestionPhase: playerPhase === 'question',
-        hasStartTime: !!playerQuestionStartTime,
-        playerQuestionStartTime
-      });
+      if (shuffledQuestionData) {
+        setShuffledQuestionData(null);
+        console.log('🔀 PlayerGame: Not in question phase or no start time, clearing shuffled data');
+      }
     }
-  }, [playerPhase, playerQuestion, playerQuestionStartTime, getCurrentQuestions, session?.current_question_options_shuffled, session?.current_question, sessionId]);
+  }, [playerPhase, playerQuestion, playerQuestionStartTime, getCurrentQuestions, session?.current_question_options_shuffled, session?.current_question, shuffledQuestionData]);
 
   const handleJoin = async (name: string) => {
     if (!sessionId) return;

@@ -191,19 +191,9 @@ export const useRealtimeSync = ({
   const applyStateSafely = useCallback((incomingState: GameState) => {
     if (!isMountedRef.current) return;
 
-    console.log('🔄 Applying state update:', {
-      incomingVersion: incomingState.version,
-      localVersion,
-      sessionId: incomingState.sessionId,
-      phase: incomingState.phase
-    });
-
     // Ignore if version is not newer
     if (incomingState.version <= localVersion) {
-      console.log('⏭️ Ignoring state update - version not newer:', {
-        incoming: incomingState.version,
-        local: localVersion
-      });
+      // Silently ignore outdated updates to reduce log spam
       return;
     }
 
@@ -222,11 +212,13 @@ export const useRealtimeSync = ({
     // Apply the state update
     onStateUpdate(incomingState);
 
-    console.log('✅ State applied successfully:', {
-      newVersion: incomingState.version,
-      phase: incomingState.phase,
-      latencyMs
-    });
+    // Only log significant state changes to reduce spam
+    if (import.meta.env.DEV) {
+      console.log('✅ State applied:', {
+        version: incomingState.version,
+        phase: incomingState.phase
+      });
+    }
   }, [localVersion, onStateUpdate, logTelemetry]);
 
   // Start fallback polling

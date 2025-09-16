@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { GameData, Question } from '../types/game';
 import { WelcomeSlide } from '../components/slides/WelcomeSlide';
@@ -133,6 +133,66 @@ export const HostGame: React.FC<HostGameProps> = ({
     }
   };
 
+  // ✅ NEW: Dedicated function for question preparation
+  const prepareQuestionForSession = useCallback(async (questionIndex: number) => {
+    const currentQuestions = getCurrentQuestions();
+    const currentQuestion = currentQuestions[questionIndex];
+    
+    if (!currentQuestion || !currentQuestion.options || !Array.isArray(currentQuestion.options)) {
+      console.error('❌ Cannot prepare question - invalid question data:', currentQuestion);
+      return;
+    }
+
+    const questionId = currentQuestion.id || `host-${questionIndex}-${currentQuestion.prompt}`;
+    console.log('🔀 Preparing question for session:', { questionIndex, questionId });
+    
+    // Generate shuffled options
+    const optionsCopy = [...currentQuestion.options];
+    const shuffled = optionsCopy.sort(() => Math.random() - 0.5);
+    
+    // Find the new index of the correct answer after shuffling
+    let newCorrectIndex = 0;
+    if (currentQuestion.correct_index >= 0 && currentQuestion.correct_index < currentQuestion.options.length) {
+      const correctOption = currentQuestion.options[currentQuestion.correct_index];
+      newCorrectIndex = shuffled.findIndex(option => option === correctOption);
+      if (newCorrectIndex === -1) {
+        newCorrectIndex = 0; // Fallback
+      }
+    } else if (currentQuestion.correct_index === -1) {
+      // Trick question - all answers are correct
+      newCorrectIndex = -1;
+    }
+    
+    const questionStartTime = new Date().toISOString();
+    
+    // Save to database in a single atomic operation
+    try {
+      await updateSessionPhase(
+        'question',
+        questionIndex,
+        questionStartTime,
+        shuffled // Pass the newly shuffled options to be saved in DB
+      );
+      
+      // Set local state after successful database update
+      setShuffledHostQuestionData({
+        questionId,
+        shuffledOptions: shuffled,
+        shuffledCorrectAnswerIndex: newCorrectIndex
+      });
+      
+      console.log('✅ Question prepared and saved to database:', {
+        questionId,
+        shuffled,
+        newCorrectIndex,
+        originalCorrectIndex: currentQuestion.correct_index
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to prepare question for session:', error);
+      throw error;
+    }
+  }, [getCurrentQuestions, updateSessionPhase]);
 
   // ✅ NEW: Close jumbotron display
   const closeJumbotronDisplay = () => {
@@ -183,68 +243,55 @@ export const HostGame: React.FC<HostGameProps> = ({
       closeJumbotronDisplay();
     };
   }, []);
-  // Always call the host question shuffling useEffect
+
+  // ✅ SIMPLIFIED: Only read shuffled options from session, don't generate them
   useEffect(() => {
-    if (currentPhase === 'question') {
+    if (session?.current_question_options_shuffled && session.current_phase === 'question') {
       const currentQuestions = getCurrentQuestions();
-      const currentQuestion = currentQuestions[currentQuestionIndex];
+      const currentQuestion = currentQuestions[session.current_question];
       
       if (currentQuestion && currentQuestion.options && Array.isArray(currentQuestion.options)) {
-        const questionId = currentQuestion.id || `host-${currentQuestionIndex}-${currentQuestion.prompt}`;
+        const questionId = currentQuestion.id || `host-${session.current_question}-${currentQuestion.prompt}`;
         
-        // Only shuffle if this is a new question for the host OR if shuffled data is not yet in session
-        // We need to ensure the shuffled options are in the DB for players
-        if (!shuffledHostQuestionData || shuffledHostQuestionData.questionId !== questionId || session?.current_question_options_shuffled === null || session?.current_question_options_shuffled === undefined) {
-          console.log('🔀 Host: Shuffling options for question:', questionId);
+        // Only update if this is genuinely new shuffled data
+        if (!shuffledHostQuestionData || shuffledHostQuestionData.questionId !== questionId) {
+          const shuffled = session.current_question_options_shuffled;
           
-          const optionsCopy = [...currentQuestion.options];
-          const shuffled = optionsCopy.sort(() => Math.random() - 0.5);
-          
-          // Find the new index of the correct answer after shuffling
+          // Find the new index of the correct answer based on the shuffled options
           let newCorrectIndex = 0;
-          if (currentQuestion.correct_index >= 0 && currentQuestion.correct_index < currentQuestion.options.length) {
+          if (currentQuestion.correct_index !== undefined && currentQuestion.correct_index >= 0 && currentQuestion.correct_index < currentQuestion.options.length) {
             const correctOption = currentQuestion.options[currentQuestion.correct_index];
             newCorrectIndex = shuffled.findIndex(option => option === correctOption);
             if (newCorrectIndex === -1) {
-              newCorrectIndex = 0; // Fallback
+              newCorrectIndex = 0;
             }
           } else if (currentQuestion.correct_index === -1) {
-            // Trick question - all answers are correct
-            newCorrectIndex = -1;
+            newCorrectIndex = -1; // Trick question
           }
           
-          // ✅ SAVE shuffled options to session for players to use
-          if (updateSessionPhase) {
-            updateSessionPhase(
-              'question', // Current phase
-              currentQuestionIndex, // Current question index
-              session?.question_start_time || new Date().toISOString(), // Keep current start time or set new
-              shuffled // Pass the newly shuffled options to be saved in DB
-            ).catch(err => console.error('❌ Failed to update session with shuffled options:', err));
-          }
-
           setShuffledHostQuestionData({
             questionId,
             shuffledOptions: shuffled,
             shuffledCorrectAnswerIndex: newCorrectIndex
           });
           
-          console.log('✅ Host: Options shuffled and stored:', {
+          console.log('✅ Host: Read shuffled options from session:', {
             questionId,
-            original: currentQuestion.options,
-            shuffled: shuffled,
-            originalCorrectIndex: currentQuestion.correct_index,
-            newCorrectIndex: newCorrectIndex
+            shuffledOptions: shuffled,
+            newCorrectIndex
           });
         } else {
-          console.log('✅ Host: Using existing shuffled options for question:', questionId);
+          console.log('📺 Host: Shuffled options unchanged, skipping update');
         }
       }
     } else {
-      // Clear shuffled data when not in question phase
-      setShuffledHostQuestionData(null);
+      // Clear shuffled data when not in question phase or no shuffled options available
+      if (shuffledHostQuestionData) {
+        setShuffledHostQuestionData(null);
+        console.log('🔀 Host: Cleared shuffled data (not in question phase or no options)');
+      }
     }
-  }, [currentPhase, currentQuestionIndex, shuffledHostQuestionData, session?.current_question_options_shuffled, session?.question_start_time, updateSessionPhase]);
+  }, [session?.current_question_options_shuffled, session?.current_phase, session?.current_question, shuffledHostQuestionData, getCurrentQuestions]);
 
   // Debug logging
   useEffect(() => {
@@ -417,9 +464,9 @@ export const HostGame: React.FC<HostGameProps> = ({
           
         case 'sponsor1':
           console.log('📝 Moving from sponsor1 to question');
+          // ✅ NEW: Use dedicated preparation function
+          await prepareQuestionForSession(currentQuestionIndex);
           setCurrentPhase('question');
-          const questionStartTime = new Date().toISOString();
-          await updateSessionPhase('question', currentQuestionIndex, questionStartTime);
           
           // ✅ NOW players see the question (after sponsor finishes)
           // Broadcast state update
@@ -427,7 +474,7 @@ export const HostGame: React.FC<HostGameProps> = ({
             await broadcastStateUpdate({
               phase: 'question',
               currentQuestionIndex,
-              questionStartTime,
+              questionStartTime: new Date().toISOString(),
               playersOnline: players?.length || 0
             });
           }
@@ -437,7 +484,7 @@ export const HostGame: React.FC<HostGameProps> = ({
             await updateAllPlayerSessions(playerIds, {
               phase: 'question',
               current_question: currentQuestionIndex,
-              question_start_time: questionStartTime,
+              question_start_time: new Date().toISOString(),
               has_submitted: false
             });
           }
@@ -508,17 +555,17 @@ export const HostGame: React.FC<HostGameProps> = ({
             } else {
               const nextQuestion = currentQuestionIndex + 1;
               console.log('➡️ Moving to next question:', nextQuestion);
+              // ✅ NEW: Use dedicated preparation function
+              await prepareQuestionForSession(nextQuestion);
               setCurrentQuestionIndex(nextQuestion);
               setCurrentPhase('question');
-              const nextQuestionStartTime = new Date().toISOString();
-              await updateSessionPhase('question', nextQuestion, nextQuestionStartTime);
               
               // Broadcast state update
               if (broadcastStateUpdate) {
                 await broadcastStateUpdate({
                   phase: 'question',
                   currentQuestionIndex: nextQuestion,
-                  questionStartTime: nextQuestionStartTime,
+                  questionStartTime: new Date().toISOString(),
                   playersOnline: players?.length || 0
                 });
               }
@@ -528,7 +575,7 @@ export const HostGame: React.FC<HostGameProps> = ({
                 await updateAllPlayerSessions(playerIds, {
                   phase: 'question',
                   current_question: nextQuestion,
-                  question_start_time: nextQuestionStartTime,
+                  question_start_time: new Date().toISOString(),
                   has_submitted: false
                 });
               }
@@ -564,17 +611,17 @@ export const HostGame: React.FC<HostGameProps> = ({
         case 'sponsor2':
           const nextQuestion = currentQuestionIndex + 1;
           console.log('➡️ Moving from sponsor2 to question:', nextQuestion);
+          // ✅ NEW: Use dedicated preparation function
+          await prepareQuestionForSession(nextQuestion);
           setCurrentQuestionIndex(nextQuestion);
           setCurrentPhase('question');
-          const nextQuestionStartTime = new Date().toISOString();
-          await updateSessionPhase('question', nextQuestion, nextQuestionStartTime);
           
           // Broadcast state update
           if (broadcastStateUpdate) {
             await broadcastStateUpdate({
               phase: 'question',
               currentQuestionIndex: nextQuestion,
-              questionStartTime: nextQuestionStartTime,
+              questionStartTime: new Date().toISOString(),
               playersOnline: players?.length || 0
             });
           }
@@ -584,7 +631,7 @@ export const HostGame: React.FC<HostGameProps> = ({
             await updateAllPlayerSessions(playerIds, {
               phase: 'question',
               current_question: nextQuestion,
-              question_start_time: nextQuestionStartTime,
+              question_start_time: new Date().toISOString(),
               has_submitted: false
             });
           }
@@ -923,9 +970,6 @@ export const HostGame: React.FC<HostGameProps> = ({
       id: q.id || `default-${index}`
     }));
   };
-
-  // ✅ NEW: Handle host question shuffling when question phase starts
-  // This useEffect has been moved up to ensure consistent hook order
 
   return (
     <div className="font-sans bg-gray-900 min-h-screen">

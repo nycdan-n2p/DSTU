@@ -120,7 +120,11 @@ export const JumbotronDisplay: React.FC = () => {
         });
       }
     } else {
-      setShuffledHostQuestionData(null);
+      // Only clear if we currently have shuffled data
+      if (shuffledHostQuestionData) {
+        setShuffledHostQuestionData(null);
+        console.log('🔀 Jumbotron: Cleared shuffled data (not in question phase or no options)');
+      }
     }
   }, [session?.current_phase, session?.current_question, session?.current_question_options_shuffled, shuffledHostQuestionData]);
 
