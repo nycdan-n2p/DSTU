@@ -85,35 +85,77 @@ export const PlayerGame: React.FC = () => {
   }, [sessionId]);
   // ✅ NEW: Track individual player state from players array
   useEffect(() => {
+    console.log('👤 PlayerGame: Player state tracking effect triggered');
+    console.log('👤 PlayerGame: Current data:', {
+      playerId,
+      playersArrayLength: players?.length || 0,
+      sessionExists: !!session,
+      sessionPhase: session?.current_phase,
+      sessionQuestion: session?.current_question,
+      sessionQuestionStartTime: session?.question_start_time
+    });
+    
     if (playerId && players.length > 0) {
       const currentPlayer = players.find(p => p.id === playerId);
+      console.log('👤 PlayerGame: Looking for player in array:', {
+        playerId,
+        foundPlayer: !!currentPlayer,
+        playerData: currentPlayer ? {
+          id: currentPlayer.id,
+          name: currentPlayer.name,
+          score: currentPlayer.score,
+          current_phase: (currentPlayer as any).current_phase,
+          current_question: (currentPlayer as any).current_question,
+          question_start_time: (currentPlayer as any).question_start_time,
+          has_submitted: (currentPlayer as any).has_submitted
+        } : null
+      });
+      
       if (currentPlayer) {
-        console.log('👤 Found current player data:', currentPlayer);
         
         // Check if player has individual phase data
         if ((currentPlayer as any).current_phase) {
+          console.log('✅ PlayerGame: Using individual player phase data');
           setPlayerPhase((currentPlayer as any).current_phase);
           setPlayerQuestion((currentPlayer as any).current_question || 0);
           setPlayerQuestionStartTime((currentPlayer as any).question_start_time || null);
           
-          console.log('✅ Updated player state:', {
+          console.log('✅ PlayerGame: Updated player state from individual data:', {
             phase: (currentPlayer as any).current_phase,
             question: (currentPlayer as any).current_question,
             questionStartTime: (currentPlayer as any).question_start_time
           });
         } else {
           // Fallback to global session if individual data not available
-          console.log('⚠️ No individual player phase data, using global session');
+          console.log('⚠️ PlayerGame: No individual player phase data, using global session');
           setPlayerPhase(session?.current_phase || 'waiting');
           setPlayerQuestion(session?.current_question || 0);
           setPlayerQuestionStartTime(session?.question_start_time || null);
+          
+          console.log('✅ PlayerGame: Updated player state from global session:', {
+            phase: session?.current_phase || 'waiting',
+            question: session?.current_question || 0,
+            questionStartTime: session?.question_start_time || null
+          });
         }
+      } else {
+        console.log('⚠️ PlayerGame: Player not found in players array');
+        console.log('👥 PlayerGame: Available players:', players.map(p => ({ id: p.id, name: p.name })));
       }
     } else if (session) {
       // Fallback to global session when no individual player data
+      console.log('⚠️ PlayerGame: No playerId or empty players array, using global session fallback');
       setPlayerPhase(session.current_phase || 'waiting');
       setPlayerQuestion(session.current_question || 0);
       setPlayerQuestionStartTime(session.question_start_time || null);
+      
+      console.log('✅ PlayerGame: Updated player state from global session fallback:', {
+        phase: session.current_phase || 'waiting',
+        question: session.current_question || 0,
+        questionStartTime: session.question_start_time || null
+      });
+    } else {
+      console.log('⚠️ PlayerGame: No session data available');
     }
   }, [playerId, players, session]);
 
@@ -284,15 +326,33 @@ export const PlayerGame: React.FC = () => {
 
   // ✅ NEW: Handle shuffling at parent level when question changes
   useEffect(() => {
-    console.log('DEBUG PlayerGame: useEffect for shuffled data triggered.'); // DEBUG LOG
-    console.log('DEBUG PlayerGame: Current session object:', session); // DEBUG LOG
-    console.log('DEBUG PlayerGame: session?.current_question_options_shuffled:', session?.current_question_options_shuffled); // DEBUG LOG
-    console.log('DEBUG PlayerGame: playerPhase:', playerPhase, 'playerQuestionStartTime:', playerQuestionStartTime); // DEBUG LOG
+    console.log('🔀 PlayerGame: Shuffled data effect triggered');
+    console.log('🔀 PlayerGame: Current state:', {
+      playerPhase,
+      playerQuestion,
+      playerQuestionStartTime,
+      sessionPhase: session?.current_phase,
+      sessionQuestion: session?.current_question,
+      hasShuffledOptions: !!session?.current_question_options_shuffled,
+      shuffledOptionsLength: session?.current_question_options_shuffled?.length || 0,
+      currentShuffledData: shuffledQuestionData ? {
+        questionId: shuffledQuestionData.questionId,
+        optionsLength: shuffledQuestionData.shuffledOptions.length
+      } : null
+    });
     
     if (playerPhase === 'question' && playerQuestionStartTime) {
       // ✅ ENHANCED: Check if we have shuffled options and they're for the correct question
       const hasValidShuffledOptions = session?.current_question_options_shuffled && 
                                      session.current_question === playerQuestion;
+      
+      console.log('🔀 PlayerGame: Checking shuffled options validity:', {
+        hasShuffledOptions: !!session?.current_question_options_shuffled,
+        sessionQuestion: session?.current_question,
+        playerQuestion,
+        questionsMatch: session?.current_question === playerQuestion,
+        hasValidShuffledOptions
+      });
       
       if (hasValidShuffledOptions) {
         const currentQuestions = getCurrentQuestions;
@@ -321,21 +381,34 @@ export const PlayerGame: React.FC = () => {
             shuffledOptions: shuffled,
             shuffledCorrectAnswerIndex: newCorrectIndex
           });
-          console.log('✅ Player: Using shuffled options from session:', {
+          console.log('✅ PlayerGame: Set shuffled options from session:', {
             questionId,
-            shuffled: shuffled,
-            newCorrectIndex: newCorrectIndex
+            shuffledOptions: shuffled,
+            newCorrectIndex,
+            originalCorrectIndex: currentQuestion.correct_index
           });
+        } else {
+          console.log('⚠️ PlayerGame: Current question not found or invalid options');
         }
       } else {
-        // ✅ FIXED: Wait for shuffled options to arrive via realtime instead of fetching
-        console.log('⏳ Player: Waiting for shuffled options to arrive via realtime sync');
-        // Don't set shuffledQuestionData - wait for next realtime update
+        console.log('⏳ PlayerGame: Waiting for shuffled options to arrive via realtime sync');
+        console.log('⏳ PlayerGame: Missing data details:', {
+          hasShuffledOptions: !!session?.current_question_options_shuffled,
+          sessionQuestion: session?.current_question,
+          playerQuestion,
+          questionsMatch: session?.current_question === playerQuestion
+        });
       }
     } else {
       // Clear shuffled data when not in question phase
       setShuffledQuestionData(null);
-      console.log('DEBUG PlayerGame: Not in question phase or no start time, clearing shuffled data.'); // DEBUG LOG
+      console.log('🔀 PlayerGame: Not in question phase or no start time, clearing shuffled data');
+      console.log('🔀 PlayerGame: Phase check details:', {
+        playerPhase,
+        isQuestionPhase: playerPhase === 'question',
+        hasStartTime: !!playerQuestionStartTime,
+        playerQuestionStartTime
+      });
     }
   }, [playerPhase, playerQuestion, playerQuestionStartTime, getCurrentQuestions, session?.current_question_options_shuffled, session?.current_question, sessionId]);
 

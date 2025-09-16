@@ -85,6 +85,16 @@ export const JumbotronDisplay: React.FC = () => {
         const questionId = currentQuestion.id || `jumbotron-${session.current_question}-${currentQuestion.prompt}`;
         const shuffled = session.current_question_options_shuffled;
         
+        // ✅ FIXED: Prevent unnecessary updates if shuffled data hasn't changed
+        if (shuffledHostQuestionData && 
+            shuffledHostQuestionData.questionId === questionId &&
+            JSON.stringify(shuffledHostQuestionData.shuffledOptions) === JSON.stringify(shuffled)) {
+          console.log('📺 Jumbotron: Shuffled options unchanged, skipping update');
+          return;
+        }
+        
+        console.log('📺 Jumbotron: Setting new shuffled options for question:', questionId);
+        
         // Find the new index of the correct answer based on the shuffled options
         let newCorrectIndex = 0;
         if (currentQuestion.correct_index !== undefined && currentQuestion.correct_index >= 0 && currentQuestion.correct_index < currentQuestion.options.length) {
@@ -102,11 +112,17 @@ export const JumbotronDisplay: React.FC = () => {
           shuffledOptions: shuffled,
           shuffledCorrectAnswerIndex: newCorrectIndex
         });
+        
+        console.log('✅ Jumbotron: Shuffled data updated:', {
+          questionId,
+          shuffledOptions: shuffled,
+          newCorrectIndex
+        });
       }
     } else {
       setShuffledHostQuestionData(null);
     }
-  }, [session?.current_phase, session?.current_question, session?.current_question_options_shuffled]);
+  }, [session?.current_phase, session?.current_question, session?.current_question_options_shuffled, shuffledHostQuestionData]);
 
   const loadGameData = async () => {
     try {
