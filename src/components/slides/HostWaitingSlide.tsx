@@ -72,6 +72,7 @@ export const HostWaitingSlide: React.FC<HostWaitingSlideProps> = ({
     }, 3000);
 
     return () => clearTimeout(timer);
+  }, [hasPlayedAudio, intro?.text, playAudio]);
 
   const joinUrl = `${window.location.origin}/join/${sessionId}`;
 
