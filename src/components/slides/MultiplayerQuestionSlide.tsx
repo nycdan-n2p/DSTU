@@ -105,6 +105,7 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
         setTimerActive(true);
       }, 1000);
     }
+  }, [hasPlayedQuestionAudio, question.prompt, playAudio]);
 
   const handleTimeUp = () => {
     setTimerActive(false);
