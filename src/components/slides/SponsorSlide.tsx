@@ -26,6 +26,7 @@ export const SponsorSlide: React.FC<SponsorSlideProps> = ({ sponsor, onNext, isJ
     }, 4000);
 
     return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex flex-col items-center justify-center p-8 text-white relative overflow-hidden">

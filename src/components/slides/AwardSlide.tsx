@@ -26,6 +26,7 @@ export const AwardSlide: React.FC<AwardSlideProps> = ({ award, onRestart, isJumb
     }, 5000);
 
     return () => clearTimeout(timer);
+  }, [award.description, playAudio]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 flex flex-col items-center justify-center p-8 text-white relative overflow-hidden">
