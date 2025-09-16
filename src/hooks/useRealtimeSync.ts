@@ -231,7 +231,10 @@ export const useRealtimeSync = ({
 
   // Start fallback polling
   const startFallbackPolling = useCallback(() => {
-    if (fallbackIntervalRef.current || !isMountedRef.current) return;
+    if (fallbackIntervalRef.current || !isMountedRef.current) {
+      console.log('⚠️ Fallback polling already active or component unmounted');
+      return;
+    }
 
     console.log('🔄 Starting fallback polling', {
       reason: 'Connection lost',
@@ -252,8 +255,23 @@ export const useRealtimeSync = ({
         }
       } catch (error) {
         console.error('❌ Fallback polling error:', error);
+        // If polling fails consistently, increase interval
+        if (fallbackIntervalRef.current) {
+          window.clearInterval(fallbackIntervalRef.current);
+          fallbackIntervalRef.current = window.setInterval(async () => {
+            if (!isMountedRef.current) return;
+            try {
+              const currentState = await fetchCurrentState();
+              if (currentState) {
+                applyStateSafely(currentState);
+              }
+            } catch (error) {
+              console.error('❌ Slower fallback polling error:', error);
+            }
+          }, 3000); // Slower polling if errors occur
+        }
       }
-    }, 1000); // Faster polling for quiz responsiveness
+    }, 2000); // Slightly slower initial polling to reduce server load
 
     logTelemetry({
       sessionId,
@@ -320,10 +338,17 @@ export const useRealtimeSync = ({
 
   // Reconnect with exponential backoff
   const reconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current || !isMountedRef.current || isReconnectingRef.current) return;
+    if (reconnectTimeoutRef.current || !isMountedRef.current || isReconnectingRef.current) {
+      console.log('⚠️ Reconnect blocked:', {
+        hasTimeout: !!reconnectTimeoutRef.current,
+        isMounted: isMountedRef.current,
+        isReconnecting: isReconnectingRef.current
+      });
+      return;
+    }
 
     isReconnectingRef.current = true;
-    const backoffDelay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+    const backoffDelay = Math.min(2000 * Math.pow(1.5, reconnectAttempts), 15000); // Less aggressive backoff
     console.log(`🔄 Reconnecting in ${backoffDelay}ms (attempt ${reconnectAttempts + 1})`);
 
     reconnectTimeoutRef.current = window.setTimeout(() => {
@@ -334,6 +359,18 @@ export const useRealtimeSync = ({
 
       setReconnectAttempts(prev => prev + 1);
       connectionStableRef.current = false;
+      
+      // Clean up previous channel before setting up new one
+      if (channelRef.current) {
+        try {
+          channelRef.current.unsubscribe();
+          supabase.removeChannel(channelRef.current);
+        } catch (error) {
+          console.warn('⚠️ Error cleaning up channel during reconnect:', error);
+        }
+        channelRef.current = null;
+      }
+      
       setupRealtimeChannel();
       
       // Give connection time to stabilize before allowing another reconnect
@@ -348,11 +385,12 @@ export const useRealtimeSync = ({
         eventType: 'reconnect_attempt'
       });
     }, backoffDelay);
-  }, [reconnectAttempts, sessionId, localVersion, logTelemetry]);
+  }, [reconnectAttempts, sessionId, localVersion, logTelemetry, setupRealtimeChannel]);
 
   // Setup realtime channel
   const setupRealtimeChannel = useCallback(() => {
     if (channelRef.current) {
+      console.log('🟡 useRealtimeSync: Unsubscribing from previous channel for sessionId:', sessionId);
       try {
         channelRef.current.unsubscribe();
         supabase.removeChannel(channelRef.current);
@@ -441,13 +479,9 @@ export const useRealtimeSync = ({
           isReconnectingRef.current = false;
           connectionStableRef.current = true;
           
-          // Don't stop polling immediately - keep it as backup for 10 seconds
-          setTimeout(() => {
-            if (connectionStableRef.current && isConnected) {
-              console.log('🎯 Websocket stable, reducing polling frequency');
-              stopFallbackPolling();
-            }
-          }, 10000);
+          // Stop fallback polling immediately when websocket connects
+          console.log('🎯 Websocket connected, stopping fallback polling');
+          stopFallbackPolling();
           
           logTelemetry({
             sessionId,
@@ -502,24 +536,18 @@ export const useRealtimeSync = ({
           
           // Only start fallback polling if connection wasn't stable
           if (!connectionStableRef.current) {
-            setTimeout(() => {
-              if (!isMountedRef.current || isConnected) return;
-              
-              if (!fallbackPolling) {
-                console.log('🔄 Starting fallback polling after unstable connection');
-                startFallbackPolling();
-              }
-            }, 2000);
+            console.log('🔄 Starting fallback polling after connection closed');
+            startFallbackPolling();
           }
           
-          // Less aggressive reconnection - wait longer before attempting
-          if (reconnectAttempts < 3 && !isReconnectingRef.current) {
-            console.log('⏳ Scheduling reconnection attempt');
-            setTimeout(() => {
-              if (isMountedRef.current && !isConnected) {
+          // Only reconnect if we haven't exceeded max attempts
+          if (reconnectAttempts < 3 && !isReconnectingRef.current && !connectionStableRef.current) {
+            console.log('⏳ Scheduling reconnection attempt after 3 seconds');
+            reconnectTimeoutRef.current = window.setTimeout(() => {
+              if (isMountedRef.current && !isConnected && !isReconnectingRef.current) {
                 reconnect();
               }
-            }, 5000); // Wait 5 seconds before reconnecting
+            }, 3000);
           }
         }
       });
@@ -530,6 +558,7 @@ export const useRealtimeSync = ({
 
   // Initialize connection and fetch initial state
   const initialize = useCallback(async () => {
+    console.log('🔵 useRealtimeSync: Initializing/Re-running effect for sessionId:', sessionId);
     console.log('🚀 Initializing hybrid sync for session:', sessionId);
     
     try {
@@ -616,6 +645,7 @@ export const useRealtimeSync = ({
 
   // Cleanup function
   const cleanup = useCallback(() => {
+    console.log('🔴 useRealtimeSync: Cleaning up effect for sessionId:', sessionId);
     console.log('🧹 Cleaning up realtime sync');
     
     clearIntervals();
@@ -640,12 +670,13 @@ export const useRealtimeSync = ({
 
   // Initialize on mount
   useEffect(() => {
+    console.log('🔵 useRealtimeSync: useEffect triggered for sessionId:', sessionId);
     if (sessionId) {
       initialize();
     }
 
     return cleanup;
-  }, [sessionId, initialize, cleanup]);
+  }, [sessionId]); // ✅ FIXED: Remove initialize and cleanup from dependencies to prevent re-runs
 
   // Get telemetry data
   const getTelemetryData = useCallback(() => {

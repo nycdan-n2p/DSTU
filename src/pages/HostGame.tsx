@@ -92,6 +92,11 @@ export const HostGame: React.FC<HostGameProps> = ({
     getTelemetryData
   } = useGameSession(sessionId || undefined);
 
+  // ✅ DEBUG: Log when HostGame re-renders
+  useEffect(() => {
+    console.log('🎮 HostGame: Component re-rendered with sessionId:', sessionId);
+  });
+
   const { forceNewSession, clearAllSessionData } = useSessionManager();
   
   // ✅ NEW: Streak tracking
@@ -147,12 +152,14 @@ export const HostGame: React.FC<HostGameProps> = ({
 
   // Always call useEffect hooks unconditionally
   useEffect(() => {
+    console.log('🎮 HostGame: loadGameData and initializeSession effect triggered');
     loadGameData();
     initializeSession();
   }, []);
 
   // Load custom questions for this session - always call useEffect
   useEffect(() => {
+    console.log('🎮 HostGame: loadCustomQuestions effect triggered for sessionId:', sessionId);
     if (sessionId) {
       loadCustomQuestions();
       loadCustomSponsorsData();

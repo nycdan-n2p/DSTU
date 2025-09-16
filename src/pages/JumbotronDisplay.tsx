@@ -56,6 +56,7 @@ export const JumbotronDisplay: React.FC = () => {
 
   // Always call hooks in the same order
   useEffect(() => {
+    console.log('📺 JumbotronDisplay: loadGameData effect triggered');
     loadGameData();
     
     if (!isValidSession(sessionId)) {
@@ -67,6 +68,7 @@ export const JumbotronDisplay: React.FC = () => {
 
   // Load custom questions and sponsors
   useEffect(() => {
+    console.log('📺 JumbotronDisplay: loadCustomQuestions effect triggered for sessionId:', sessionId);
     if (sessionId) {
       loadCustomQuestions();
       loadCustomSponsorsData();
