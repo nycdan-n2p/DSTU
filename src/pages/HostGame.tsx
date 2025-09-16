@@ -271,23 +271,6 @@ export const HostGame: React.FC<HostGameProps> = ({
     initializeSession();
   }, []);
 
-  // Load custom questions for this session - always call useEffect
-  useEffect(() => {
-    console.log('🎮 HostGame: loadCustomQuestions effect triggered for sessionId:', sessionId);
-    console.log('🎮 DEBUG: loadCustomQuestions effect details:', {
-      sessionId,
-      sessionIdType: typeof sessionId,
-      sessionIdLength: sessionId?.length,
-      sessionIdTrimmed: sessionId?.trim(),
-      isEmpty: !sessionId || sessionId.trim() === ''
-    });
-    if (sessionId) {
-      loadCustomQuestions();
-      loadCustomSponsorsData();
-    } else {
-      console.log('🎮 DEBUG: Skipping loadCustomQuestions because sessionId is falsy:', sessionId);
-    }
-  }, [sessionId]);
 
   // NEW: If starting in creator, set initial phase and open creator
   useEffect(() => {
@@ -427,20 +410,28 @@ export const HostGame: React.FC<HostGameProps> = ({
     }
     
     try {
+      let finalSessionId: string;
+      
       // If we have an existing session ID, try to load it
       if (existingSessionId) {
         console.log('🔄 Loading existing session:', existingSessionId);
         console.log('🔄 DEBUG: Setting sessionId to existingSessionId:', existingSessionId);
-        setSessionId(existingSessionId);
+        finalSessionId = existingSessionId;
+        setSessionId(finalSessionId);
         console.log('🔄 DEBUG: sessionId state should now be:', existingSessionId);
-        return;
+      } else {
+        clearAllSessionData();
+        finalSessionId = await createSession(initialTitle);
+        setSessionId(finalSessionId);
+        console.log('✅ Created session:', finalSessionId);
+        console.log('✅ DEBUG: New session created and sessionId set to:', finalSessionId);
       }
       
-      clearAllSessionData();
-      const newSessionId = await createSession(initialTitle);
-      setSessionId(newSessionId);
-      console.log('✅ Created session:', newSessionId);
-      console.log('✅ DEBUG: New session created and sessionId set to:', newSessionId);
+      // ✅ NEW: Load custom data immediately after sessionId is established
+      console.log('📝 Loading custom data for established session:', finalSessionId);
+      await loadCustomQuestions(finalSessionId);
+      await loadCustomSponsorsData(finalSessionId);
+      
     } catch (error) {
       console.error('❌ Failed to create session:', error);
       alert(`Failed to create quiz "${initialTitle}": ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
@@ -770,13 +761,15 @@ export const HostGame: React.FC<HostGameProps> = ({
   };
 
   // ✅ NEW: Load custom sponsors
-  const loadCustomSponsorsData = async () => {
-    if (!sessionId || !loadCustomSponsors) return;
+  const loadCustomSponsorsData = async (targetSessionId?: string) => {
+    const sessionIdToUse = targetSessionId || sessionId;
+    
+    if (!sessionIdToUse || !loadCustomSponsors) return;
     
     try {
       const sponsors = await loadCustomSponsors();
       setCustomSponsors(sponsors || []);
-      console.log('📺 Loaded custom sponsors:', sponsors);
+      console.log('📺 Loaded custom sponsors for session', sessionIdToUse, ':', sponsors);
     } catch (error) {
       console.error('❌ Error loading custom sponsors:', error);
     }
@@ -939,30 +932,34 @@ export const HostGame: React.FC<HostGameProps> = ({
     }
   };
 
-  const loadCustomQuestions = async () => {
-    if (!sessionId || sessionId.trim() === '') {
+  const loadCustomQuestions = async (targetSessionId?: string) => {
+    const sessionIdToUse = targetSessionId || sessionId;
+    
+    if (!sessionIdToUse || sessionIdToUse.trim() === '') {
       console.warn('⚠️ Cannot load custom questions - invalid session ID');
       console.warn('⚠️ DEBUG: loadCustomQuestions called with invalid sessionId:', {
-        sessionId,
-        sessionIdType: typeof sessionId,
-        sessionIdLength: sessionId?.length,
-        sessionIdTrimmed: sessionId?.trim()
+        sessionIdToUse,
+        sessionIdType: typeof sessionIdToUse,
+        sessionIdLength: sessionIdToUse?.length,
+        sessionIdTrimmed: sessionIdToUse?.trim(),
+        targetSessionId,
+        currentSessionId: sessionId
       });
       return;
     }
     
     try {
-      console.log('📝 DEBUG: About to query Supabase with sessionId:', sessionId);
+      console.log('📝 DEBUG: About to query Supabase with sessionId:', sessionIdToUse);
       console.log('📝 DEBUG: Supabase query details:', {
         table: 'custom_questions',
-        filter: `session_id = ${sessionId}`,
+        filter: `session_id = ${sessionIdToUse}`,
         orderBy: 'created_at ASC'
       });
       
       const { data, error } = await supabase
         .from('custom_questions')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('session_id', sessionIdToUse)
         .order('created_at', { ascending: true });
 
       if (error) {
