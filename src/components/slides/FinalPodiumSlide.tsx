@@ -125,6 +125,7 @@ export const FinalPodiumSlide: React.FC<FinalPodiumSlideProps> = ({
         });
       }, 1000);
     }
+  }, [topThree, playAudio]);
 
   const getPodiumHeight = (position: number) => {
     switch (position) {
