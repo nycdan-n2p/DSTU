@@ -84,7 +84,7 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
   useEffect(() => {
     setShowQuestion(true);
     
-    if (!hasPlayedQuestionAudio && question.prompt && !isJumbotron) {
+    if (!hasPlayedQuestionAudio && question.prompt) {
       playAudio(question.prompt, {
         priority: true,
         onComplete: () => {
@@ -97,7 +97,7 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
         }
       });
       setHasPlayedQuestionAudio(true);
-    } else if (isJumbotron) {
+    } else {
       // For jumbotron, skip audio and show content immediately
       setAudioComplete(true);
       setTimeout(() => {
@@ -105,7 +105,6 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
         setTimerActive(true);
       }, 1000);
     }
-  }, [question.prompt, playAudio, hasPlayedQuestionAudio, isJumbotron]);
 
   const handleTimeUp = () => {
     setTimerActive(false);

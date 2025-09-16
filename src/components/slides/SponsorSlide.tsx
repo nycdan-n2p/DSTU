@@ -18,17 +18,14 @@ export const SponsorSlide: React.FC<SponsorSlideProps> = ({ sponsor, onNext, isJ
 
   useEffect(() => {
     setShowContent(true);
-    // Play the sponsor text as speech (only for presenter)
-    if (!isJumbotron) {
-      playAudio(sponsor.text);
-    }
+    // Play the sponsor text as speech
+    playAudio(sponsor.text);
     
     const timer = setTimeout(() => {
       setShowButton(true);
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [sponsor.text, playAudio, isJumbotron]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex flex-col items-center justify-center p-8 text-white relative overflow-hidden">

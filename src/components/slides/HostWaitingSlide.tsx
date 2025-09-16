@@ -62,7 +62,7 @@ export const HostWaitingSlide: React.FC<HostWaitingSlideProps> = ({
   useEffect(() => {
     setShowContent(true);
     
-    if (!hasPlayedAudio && intro?.text && !isJumbotron) {
+    if (!hasPlayedAudio && intro?.text) {
       playAudio(intro.text);
       setHasPlayedAudio(true);
     }
@@ -72,7 +72,6 @@ export const HostWaitingSlide: React.FC<HostWaitingSlideProps> = ({
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [intro?.text, playAudio, hasPlayedAudio, isJumbotron]);
 
   const joinUrl = `${window.location.origin}/join/${sessionId}`;
 

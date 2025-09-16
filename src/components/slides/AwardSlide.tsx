@@ -18,17 +18,14 @@ export const AwardSlide: React.FC<AwardSlideProps> = ({ award, onRestart, isJumb
 
   useEffect(() => {
     setShowContent(true);
-    // Play the award description as speech (only for presenter)
-    if (!isJumbotron) {
-      playAudio(award.description);
-    }
+    // Play the award description as speech
+    playAudio(award.description);
     
     const timer = setTimeout(() => {
       setShowButton(true);
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [award.description, playAudio, isJumbotron]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 flex flex-col items-center justify-center p-8 text-white relative overflow-hidden">

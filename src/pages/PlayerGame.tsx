@@ -870,13 +870,6 @@ export const PlayerGame: React.FC = () => {
     // Show waiting for final or other phases
     const getPhaseMessage = () => {
       switch (playerPhase) {
-        case 'final':
-          return {
-            icon: '🏆',
-            title: 'Game Over!',
-            subtitle: 'Thanks for playing',
-            description: 'Check out the final results on the main screen!'
-          };
         default:
           return {
             icon: '⭐',
@@ -886,6 +879,97 @@ export const PlayerGame: React.FC = () => {
           };
       }
     };
+
+    // Show final podium if in podium phase
+    if (playerPhase === 'podium') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl md:text-6xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 animate-pulse">
+                🏆 FINAL RESULTS! 🏆
+              </h1>
+              <p className="text-xl md:text-2xl text-yellow-300 font-bold">
+                The Ultimate Quiz Champions!
+              </p>
+            </div>
+
+            {/* Player Rankings */}
+            <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-6 border border-white/30">
+              <h3 className="text-2xl font-bold text-center mb-6 text-white flex items-center justify-center gap-2">
+                🏆 Final Standings
+              </h3>
+              
+              <div className="space-y-3">
+                {players.sort((a, b) => (b.score || 0) - (a.score || 0)).map((player, index) => (
+                  <div 
+                    key={player.id}
+                    className={`flex items-center justify-between p-4 rounded-lg transition-all duration-300 ${
+                      index === 0 ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border-2 border-yellow-400' :
+                      index === 1 ? 'bg-gradient-to-r from-gray-400/30 to-gray-500/30 border-2 border-gray-400' :
+                      index === 2 ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 border-2 border-orange-400' :
+                      'bg-white/10 border border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${
+                        index === 0 ? 'bg-yellow-400 text-black' :
+                        index === 1 ? 'bg-gray-400 text-black' :
+                        index === 2 ? 'bg-orange-400 text-black' :
+                        'bg-white/20 text-white'
+                      }`}>
+                        {index === 0 ? '👑' : index + 1}
+                      </div>
+                      <div>
+                        <span className="font-bold text-white text-xl">{player.name}</span>
+                        <div className="text-sm text-gray-300">
+                          {index === 0 ? '🥇 Champion!' :
+                           index === 1 ? '🥈 Runner-up' :
+                           index === 2 ? '🥉 Third Place' :
+                           `#${index + 1}`}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-white">{player.score || 0}</div>
+                      <div className="text-sm text-gray-300">points</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Game Complete Message */}
+              <div className="mt-8 text-center">
+                <div className="bg-green-500/20 rounded-lg p-6 border border-green-400/50">
+                  <h4 className="text-2xl font-bold text-green-400 mb-2">🎉 Game Complete!</h4>
+                  <p className="text-green-200 text-lg">
+                    Thanks for playing, {playerName}!
+                  </p>
+                  <p className="text-green-300 text-sm mt-2">
+                    Check out the main screen for awards and celebrations!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Show final award if in final phase
+    if (playerPhase === 'final') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-green-600 to-blue-600 flex items-center justify-center p-8">
+          <div className="text-center text-white">
+            <div className="text-6xl mb-4 animate-spin">🏆</div>
+            <h1 className="text-3xl font-bold mb-4">Game Over!</h1>
+            <p className="text-xl mb-2">Thanks for playing, {playerName}!</p>
+            <p className="text-lg text-gray-300">Check out the final awards on the main screen!</p>
+          </div>
+        </div>
+      );
+    }
 
     const phaseInfo = getPhaseMessage();
 

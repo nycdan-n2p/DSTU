@@ -110,7 +110,7 @@ export const FinalPodiumSlide: React.FC<FinalPodiumSlideProps> = ({
 
   // ✅ FIXED: Separate useEffect for victory audio with proper dependencies
   useEffect(() => {
-    if (topThree.length > 0 && !isJumbotron) {
+    if (topThree.length > 0) {
       const victoryText = `Congratulations to our winner, ${topThree[0]?.name}! What an incredible performance with ${topThree[0]?.score} points!`;
       
       setTimeout(() => {
@@ -125,7 +125,6 @@ export const FinalPodiumSlide: React.FC<FinalPodiumSlideProps> = ({
         });
       }, 1000);
     }
-  }, [topThree[0]?.name, topThree[0]?.score, playAudio, isJumbotron]); // ✅ Only depend on winner's name and score
 
   const getPodiumHeight = (position: number) => {
     switch (position) {

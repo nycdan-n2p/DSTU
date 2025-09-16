@@ -210,7 +210,7 @@ export const ResultsSlide: React.FC<ResultsSlideProps> = ({
   }, []);
 
   useEffect(() => {
-    if (showSnarkyComment && snarkyComment && !isJumbotron) {
+    if (showSnarkyComment && snarkyComment) {
       playAudio(snarkyComment, {
         onComplete: () => {
           setTimeout(() => {
@@ -218,13 +218,12 @@ export const ResultsSlide: React.FC<ResultsSlideProps> = ({
           }, 1000);
         }
       });
-    } else if (isJumbotron) {
+    } else {
       // For jumbotron, show next button immediately
       setTimeout(() => {
         setShowNextButton(true);
       }, 3000);
     }
-  }, [showSnarkyComment, snarkyComment, playAudio, isJumbotron]);
 
   // ✅ FIXED: Helper function to get points earned for display
   const getPointsEarned = (player: any) => {
