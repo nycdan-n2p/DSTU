@@ -40,6 +40,16 @@ export const HostGame: React.FC<HostGameProps> = ({
 }) => {
   const { user, signOut } = useAuth();
   const initialTitle = quizTitle || 'Untitled Quiz';
+  
+  // ✅ DEBUG: Log props when component renders
+  console.log('🎮 HostGame: Component rendered with props:', {
+    existingSessionId,
+    startInQuestionCreator,
+    quizTitle,
+    initialTitle,
+    userEmail: user?.email
+  });
+  
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [selectedIntroText, setSelectedIntroText] = useState<string>('');
   const [currentPhase, setCurrentPhase] = useState<GamePhase>('welcome');
@@ -264,9 +274,18 @@ export const HostGame: React.FC<HostGameProps> = ({
   // Load custom questions for this session - always call useEffect
   useEffect(() => {
     console.log('🎮 HostGame: loadCustomQuestions effect triggered for sessionId:', sessionId);
+    console.log('🎮 DEBUG: loadCustomQuestions effect details:', {
+      sessionId,
+      sessionIdType: typeof sessionId,
+      sessionIdLength: sessionId?.length,
+      sessionIdTrimmed: sessionId?.trim(),
+      isEmpty: !sessionId || sessionId.trim() === ''
+    });
     if (sessionId) {
       loadCustomQuestions();
       loadCustomSponsorsData();
+    } else {
+      console.log('🎮 DEBUG: Skipping loadCustomQuestions because sessionId is falsy:', sessionId);
     }
   }, [sessionId]);
 
@@ -399,6 +418,11 @@ export const HostGame: React.FC<HostGameProps> = ({
     // Prevent duplicate session creation (e.g., from React StrictMode)
     if (sessionId || existingSessionId) {
       console.log('🔄 Session already exists, skipping creation:', sessionId || existingSessionId);
+      console.log('🔄 DEBUG: Session state details:', {
+        currentSessionId: sessionId,
+        existingSessionIdProp: existingSessionId,
+        willUseExisting: !!existingSessionId
+      });
       return;
     }
     
@@ -406,7 +430,9 @@ export const HostGame: React.FC<HostGameProps> = ({
       // If we have an existing session ID, try to load it
       if (existingSessionId) {
         console.log('🔄 Loading existing session:', existingSessionId);
+        console.log('🔄 DEBUG: Setting sessionId to existingSessionId:', existingSessionId);
         setSessionId(existingSessionId);
+        console.log('🔄 DEBUG: sessionId state should now be:', existingSessionId);
         return;
       }
       
@@ -414,6 +440,7 @@ export const HostGame: React.FC<HostGameProps> = ({
       const newSessionId = await createSession(initialTitle);
       setSessionId(newSessionId);
       console.log('✅ Created session:', newSessionId);
+      console.log('✅ DEBUG: New session created and sessionId set to:', newSessionId);
     } catch (error) {
       console.error('❌ Failed to create session:', error);
       alert(`Failed to create quiz "${initialTitle}": ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
@@ -915,10 +942,23 @@ export const HostGame: React.FC<HostGameProps> = ({
   const loadCustomQuestions = async () => {
     if (!sessionId || sessionId.trim() === '') {
       console.warn('⚠️ Cannot load custom questions - invalid session ID');
+      console.warn('⚠️ DEBUG: loadCustomQuestions called with invalid sessionId:', {
+        sessionId,
+        sessionIdType: typeof sessionId,
+        sessionIdLength: sessionId?.length,
+        sessionIdTrimmed: sessionId?.trim()
+      });
       return;
     }
     
     try {
+      console.log('📝 DEBUG: About to query Supabase with sessionId:', sessionId);
+      console.log('📝 DEBUG: Supabase query details:', {
+        table: 'custom_questions',
+        filter: `session_id = ${sessionId}`,
+        orderBy: 'created_at ASC'
+      });
+      
       const { data, error } = await supabase
         .from('custom_questions')
         .select('*')
@@ -927,13 +967,42 @@ export const HostGame: React.FC<HostGameProps> = ({
 
       if (error) {
         console.error('❌ Failed to load custom questions:', error);
+        console.error('❌ DEBUG: Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return;
       }
 
       console.log('📝 Loaded custom questions:', data);
+      console.log('📝 DEBUG: Supabase response details:', {
+        dataType: typeof data,
+        dataLength: data?.length,
+        dataIsArray: Array.isArray(data),
+        firstQuestion: data?.[0] ? {
+          id: data[0].id,
+          prompt: data[0].prompt?.substring(0, 50),
+          sessionId: data[0].session_id
+        } : null
+      });
+      
       setCustomQuestions(data || []);
+      
+      console.log('📝 DEBUG: customQuestions state updated, new length:', (data || []).length);
+      console.log('📝 DEBUG: customQuestions state content:', (data || []).map(q => ({
+        id: q.id,
+        prompt: q.prompt?.substring(0, 50),
+        sessionId: q.session_id
+      })));
     } catch (error) {
       console.error('❌ Error loading custom questions:', error);
+      console.error('❌ DEBUG: Exception details:', {
+        errorType: typeof error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
     }
   };
 
