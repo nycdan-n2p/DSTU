@@ -78,6 +78,12 @@ export const AdminAnalytics: React.FC = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (user) {
+      loadSessions();
+    }
+  }, [user]);
+
   // Show auth form if not authenticated
   if (authLoading) {
     return (
@@ -92,12 +98,6 @@ export const AdminAnalytics: React.FC = () => {
   if (!user) {
     return <AuthForm />;
   }
-
-  useEffect(() => {
-    if (user) {
-      loadSessions();
-    }
-  }, [user]);
 
   const loadSessions = async () => {
     if (!user) return;
