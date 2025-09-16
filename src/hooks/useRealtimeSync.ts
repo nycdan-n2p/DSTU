@@ -52,7 +52,6 @@ export const useRealtimeSync = ({
   const isMountedRef = useRef<boolean>(true);
   const telemetryRef = useRef<TelemetryData[]>([]);
   const isReconnectingRef = useRef<boolean>(false);
-  const connectionStableRef = useRef<boolean>(false);
 
   // Track component mount status
   useEffect(() => {
@@ -337,7 +336,7 @@ export const useRealtimeSync = ({
   }, [isConnected, startFallbackPolling]);
 
   // Reconnect with exponential backoff
-  const reconnect = useCallback(() => {
+  const reconnect = useCallback((setupChannel: () => void) => {
     if (reconnectTimeoutRef.current || !isMountedRef.current || isReconnectingRef.current) {
       console.log('⚠️ Reconnect blocked:', {
         hasTimeout: !!reconnectTimeoutRef.current,
@@ -371,7 +370,7 @@ export const useRealtimeSync = ({
         channelRef.current = null;
       }
       
-      setupRealtimeChannelRef.current?.();
+      setupChannel();
       
       // Give connection time to stabilize before allowing another reconnect
       setTimeout(() => {
@@ -518,7 +517,7 @@ export const useRealtimeSync = ({
           
           // Only attempt reconnect if we haven't exceeded max attempts
           if (reconnectAttempts < 5) {
-            reconnect();
+            reconnect(setupRealtimeChannel);
           } else {
             console.log('⚠️ Max reconnect attempts reached, staying in fallback mode');
           }
@@ -545,7 +544,7 @@ export const useRealtimeSync = ({
             console.log('⏳ Scheduling reconnection attempt after 3 seconds');
             reconnectTimeoutRef.current = window.setTimeout(() => {
               if (isMountedRef.current && !isConnected && !isReconnectingRef.current) {
-                reconnect();
+                reconnect(setupRealtimeChannel);
               }
             }, 3000);
           }
@@ -556,13 +555,8 @@ export const useRealtimeSync = ({
     startHeartbeat();
   }, [sessionId, applyStateSafely, onPlayerJoin, onPlayerUpdate, onPlayerLeave, startHeartbeat, stopFallbackPolling, reconnect, logTelemetry, localVersion]);
 
-  // Assign setupRealtimeChannel to ref after it's defined
-  useEffect(() => {
-    setupRealtimeChannelRef.current = setupRealtimeChannel;
-  }, [setupRealtimeChannel]);
-
   // Initialize connection and fetch initial state
-  const initialize = useCallback(async () => {
+  const initialize = useCallback(async (setupChannel: () => void) => {
     console.log('🔵 useRealtimeSync: Initializing/Re-running effect for sessionId:', sessionId);
     console.log('🚀 Initializing hybrid sync for session:', sessionId);
     
@@ -583,7 +577,7 @@ export const useRealtimeSync = ({
       setTimeout(() => {
         if (isMountedRef.current) {
           console.log('🔌 Adding websocket enhancement for real-time sync');
-          setupRealtimeChannelRef.current?.();
+          setupChannel();
         }
       }, 1000);
       
@@ -677,7 +671,7 @@ export const useRealtimeSync = ({
   useEffect(() => {
     console.log('🔵 useRealtimeSync: useEffect triggered for sessionId:', sessionId);
     if (sessionId) {
-      initialize();
+      initialize(setupRealtimeChannel);
     }
 
     return cleanup;
