@@ -371,7 +371,7 @@ export const useRealtimeSync = ({
         channelRef.current = null;
       }
       
-      setupRealtimeChannel();
+      setupRealtimeChannelRef.current?.();
       
       // Give connection time to stabilize before allowing another reconnect
       setTimeout(() => {
@@ -385,7 +385,7 @@ export const useRealtimeSync = ({
         eventType: 'reconnect_attempt'
       });
     }, backoffDelay);
-  }, [reconnectAttempts, sessionId, localVersion, logTelemetry, setupRealtimeChannel]);
+  }, [reconnectAttempts, sessionId, localVersion, logTelemetry]);
 
   // Setup realtime channel
   const setupRealtimeChannel = useCallback(() => {
@@ -556,6 +556,11 @@ export const useRealtimeSync = ({
     startHeartbeat();
   }, [sessionId, applyStateSafely, onPlayerJoin, onPlayerUpdate, onPlayerLeave, startHeartbeat, stopFallbackPolling, reconnect, logTelemetry, localVersion]);
 
+  // Assign setupRealtimeChannel to ref after it's defined
+  useEffect(() => {
+    setupRealtimeChannelRef.current = setupRealtimeChannel;
+  }, [setupRealtimeChannel]);
+
   // Initialize connection and fetch initial state
   const initialize = useCallback(async () => {
     console.log('🔵 useRealtimeSync: Initializing/Re-running effect for sessionId:', sessionId);
@@ -578,7 +583,7 @@ export const useRealtimeSync = ({
       setTimeout(() => {
         if (isMountedRef.current) {
           console.log('🔌 Adding websocket enhancement for real-time sync');
-          setupRealtimeChannel();
+          setupRealtimeChannelRef.current?.();
         }
       }, 1000);
       
@@ -586,7 +591,7 @@ export const useRealtimeSync = ({
       console.error('❌ Failed to initialize sync:', error);
       startFallbackPolling();
     }
-  }, [sessionId, fetchCurrentState, onStateUpdate, setupRealtimeChannel, startFallbackPolling]);
+  }, [sessionId, fetchCurrentState, onStateUpdate, startFallbackPolling]);
 
   // Database-driven broadcast - triggers postgres_changes for all participants
   const broadcastStateUpdate = useCallback(async (updates: Partial<GameState>) => {
