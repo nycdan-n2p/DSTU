@@ -376,6 +376,7 @@ export const HostGame: React.FC<HostGameProps> = ({
   };
 
   const handleNextPhase = async () => {
+    console.log('🔄 handleNextPhase called - Moving to next phase from:', currentPhase, 'Question:', currentQuestionIndex);
     console.log('🔄 Moving to next phase from:', currentPhase, 'Question:', currentQuestionIndex);
     
     // ✅ ENHANCED: Stop any current audio before transitioning

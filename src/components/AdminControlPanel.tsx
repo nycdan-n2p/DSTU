@@ -216,7 +216,7 @@ export const AdminControlPanel: React.FC<AdminControlPanelProps> = ({
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold transition-colors"
                   >
                     <SkipForward className="w-5 h-5" />
-                    Next Phase
+                    {currentPhase === 'sponsor1' || currentPhase === 'sponsor2' ? 'Skip Sponsor' : 'Next Phase'}
                   </button>
                 )}
                 <button
