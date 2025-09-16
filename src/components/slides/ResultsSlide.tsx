@@ -224,6 +224,7 @@ export const ResultsSlide: React.FC<ResultsSlideProps> = ({
         setShowNextButton(true);
       }, 3000);
     }
+  }, [showSnarkyComment, snarkyComment, playAudio]);
 
   // ✅ FIXED: Helper function to get points earned for display
   const getPointsEarned = (player: any) => {
