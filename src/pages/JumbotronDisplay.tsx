@@ -14,6 +14,7 @@ export const JumbotronDisplay: React.FC = () => {
   const [customSponsors, setCustomSponsors] = useState<any[]>([]);
   const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [jumbotronQuestionResults, setJumbotronQuestionResults] = useState<any>(null);
   const [shuffledHostQuestionData, setShuffledHostQuestionData] = useState<{
     questionId: string;
     shuffledOptions: string[];
@@ -127,6 +128,32 @@ export const JumbotronDisplay: React.FC = () => {
       }
     }
   }, [session?.current_phase, session?.current_question, session?.current_question_options_shuffled, shuffledHostQuestionData]);
+
+  // Load question results when entering results phase
+  useEffect(() => {
+    if (session?.current_phase === 'results' && session?.current_question !== undefined && getQuestionResults) {
+      console.log('📺 Jumbotron: Loading results for question:', session.current_question);
+      
+      const loadResults = async () => {
+        try {
+          const results = await getQuestionResults(session.current_question);
+          setJumbotronQuestionResults(results);
+          console.log('✅ Jumbotron: Results loaded:', results);
+        } catch (error) {
+          console.error('❌ Jumbotron: Failed to load results:', error);
+          setJumbotronQuestionResults(null);
+        }
+      };
+      
+      loadResults();
+    } else {
+      // Clear results when not in results phase
+      if (jumbotronQuestionResults) {
+        setJumbotronQuestionResults(null);
+        console.log('🔀 Jumbotron: Cleared question results (not in results phase)');
+      }
+    }
+  }, [session?.current_phase, session?.current_question, getQuestionResults, jumbotronQuestionResults]);
 
   const loadGameData = async () => {
     try {
@@ -320,7 +347,7 @@ export const JumbotronDisplay: React.FC = () => {
         sessionId={sessionId!}
         players={players}
         currentQuestionIndex={session.current_question}
-        questionResults={null} // Results will be fetched when needed
+        questionResults={jumbotronQuestionResults}
         shuffledHostQuestionData={shuffledHostQuestionData}
         showPoints={true}
         customQuestions={customQuestions}
