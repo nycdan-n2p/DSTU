@@ -105,6 +105,50 @@ export const HostGame: React.FC<HostGameProps> = ({
   // ✅ ENHANCED: Audio control with immediate stop capability
   const { clearQueue, stopAudio } = useAudio();
 
+  // ✅ NEW: Convert custom questions to game format (memoized)
+  const convertCustomQuestionsToGameFormat = useMemo(() => {
+    return () => {
+      return customQuestions.map((q, index) => ({
+        type: 'multiple_choice' as const,
+        id: q.id || `custom-${index}`, // Use database ID or fallback
+        prompt: q.prompt,
+        options: [q.correct_answer, ...q.wrong_answers], // ✅ REMOVE SHUFFLING HERE - Shuffling is now done once in useEffect
+        correct_index: 0, // Will be recalculated after shuffle
+        timer: 15, // Default timer
+        image_url: q.image_url, // ✅ NEW: Include image URL from database
+        feedback: {
+          correct: {
+            text: `Correct! You got that one right!`
+          },
+          wrong: {
+            text: `Wrong! The correct answer was: ${q.correct_answer}`
+          }
+        }
+      }));
+    };
+  }, [customQuestions]);
+
+  // ✅ NEW: Get current questions (custom or default) - memoized callback
+  const getCurrentQuestions = useCallback(() => {
+    if (customQuestions.length > 0) {
+      const converted = convertCustomQuestionsToGameFormat();
+      // Fix correct_index after shuffling
+      return converted.map(q => {
+        const correctAnswer = customQuestions.find(cq => cq.prompt === q.prompt)?.correct_answer;
+        const correctIndex = q.options.findIndex(option => option === correctAnswer);
+        return {
+          ...q,
+          correct_index: correctIndex >= 0 ? correctIndex : 0
+        };
+      });
+    }
+    // Add stable IDs to default questions
+    return (gameData?.questions || []).map((q, index) => ({
+      ...q,
+      id: q.id || `default-${index}`
+    }));
+  }, [customQuestions, convertCustomQuestionsToGameFormat, gameData?.questions]);
+
   // ✅ NEW: Handle next sponsor function
   const handleNextSponsor = () => {
     setCurrentSponsorIndex(prev => prev + 1);
@@ -928,48 +972,6 @@ export const HostGame: React.FC<HostGameProps> = ({
       </div>
     );
   }
-
-  // ✅ NEW: Convert custom questions to game format
-  const convertCustomQuestionsToGameFormat = () => {
-    return customQuestions.map((q, index) => ({
-      type: 'multiple_choice' as const,
-      id: q.id || `custom-${index}`, // Use database ID or fallback
-      prompt: q.prompt,
-      options: [q.correct_answer, ...q.wrong_answers], // ✅ REMOVE SHUFFLING HERE - Shuffling is now done once in useEffect
-      correct_index: 0, // Will be recalculated after shuffle
-      timer: 15, // Default timer
-      image_url: q.image_url, // ✅ NEW: Include image URL from database
-      feedback: {
-        correct: {
-          text: `Correct! You got that one right!`
-        },
-        wrong: {
-          text: `Wrong! The correct answer was: ${q.correct_answer}`
-        }
-      }
-    }));
-  };
-
-  // ✅ NEW: Get current questions (custom or default)
-  const getCurrentQuestions = () => {
-    if (customQuestions.length > 0) {
-      const converted = convertCustomQuestionsToGameFormat();
-      // Fix correct_index after shuffling
-      return converted.map(q => {
-        const correctAnswer = customQuestions.find(cq => cq.prompt === q.prompt)?.correct_answer;
-        const correctIndex = q.options.findIndex(option => option === correctAnswer);
-        return {
-          ...q,
-          correct_index: correctIndex >= 0 ? correctIndex : 0
-        };
-      });
-    }
-    // Add stable IDs to default questions
-    return (gameData?.questions || []).map((q, index) => ({
-      ...q,
-      id: q.id || `default-${index}`
-    }));
-  };
 
   return (
     <div className="font-sans bg-gray-900 min-h-screen">
