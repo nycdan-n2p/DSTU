@@ -404,11 +404,11 @@ export const HostGame: React.FC<HostGameProps> = ({
             console.log('📡 Broadcasted sponsor1 to jumbotron');
           }
           
-          // Keep players in waiting during sponsor slide
+          // Update players to sponsor1 phase so they can advance properly
           if (updateAllPlayerSessions && players && players.length > 0) {
             const playerIds = players.map(p => p.id).filter(Boolean);
             await updateAllPlayerSessions(playerIds, {
-              phase: 'waiting',  // Keep waiting during sponsor
+              phase: 'sponsor1',  // Match the actual game phase
               current_question: 0,
               has_submitted: false
             });
