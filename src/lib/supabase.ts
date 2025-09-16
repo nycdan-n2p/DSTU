@@ -33,15 +33,20 @@ export const supabase = createClient(
   {
   realtime: {
     params: {
-      eventsPerSecond: 100, // Increased for paid tier
+      eventsPerSecond: 50, // Conservative limit to avoid throttling
     },
-    heartbeatIntervalMs: 30000, // Less frequent heartbeats for stability
-    reconnectAfterMs: (tries: number) => Math.min(2000 * Math.pow(1.5, tries), 60000), // More gradual backoff
+    heartbeatIntervalMs: 20000, // More frequent for better detection
+    reconnectAfterMs: (tries: number) => {
+      // Much more conservative backoff to prevent connection storms
+      const baseDelay = 2000;
+      const maxDelay = 30000;
+      return Math.min(baseDelay * Math.pow(1.8, tries), maxDelay);
+    },
     logger: (level: string, message: string, data?: any) => {
       if (level === 'error') {
-        console.error('🔌 Realtime Error:', message, data);
-      } else if (import.meta.env.DEV && level === 'info') {
-        console.log('🔌 Realtime Info:', message);
+        console.error('🔌 Supabase Realtime Error:', message, data);
+      } else if (import.meta.env.DEV && (level === 'info' || level === 'warn')) {
+        console.log(`🔌 Supabase Realtime ${level.toUpperCase()}:`, message, data);
       }
     }
   },

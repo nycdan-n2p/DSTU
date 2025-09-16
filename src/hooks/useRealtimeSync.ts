@@ -512,10 +512,14 @@ export const useRealtimeSync = ({
             }, 2000);
           }
           
-          // Use standard reconnect flow instead of immediate reconnection
-          if (reconnectAttempts < 5 && !isReconnectingRef.current) {
+          // Less aggressive reconnection - wait longer before attempting
+          if (reconnectAttempts < 3 && !isReconnectingRef.current) {
             console.log('⏳ Scheduling reconnection attempt');
-            reconnect();
+            setTimeout(() => {
+              if (isMountedRef.current && !isConnected) {
+                reconnect();
+              }
+            }, 5000); // Wait 5 seconds before reconnecting
           }
         }
       });
