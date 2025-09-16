@@ -54,7 +54,8 @@ export const HostGame: React.FC<HostGameProps> = ({
   const [selectedIntroText, setSelectedIntroText] = useState<string>('');
   const [currentPhase, setCurrentPhase] = useState<GamePhase>('welcome');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [sessionId, setSessionId] = useState<string>('');
+  // ✅ FIXED: Initialize sessionId immediately from existingSessionId if available
+  const [sessionId, setSessionId] = useState<string>(existingSessionId || '');
   const [loading, setLoading] = useState(true);
   const [questionResults, setQuestionResults] = useState<any>(null);
   
@@ -267,9 +268,26 @@ export const HostGame: React.FC<HostGameProps> = ({
   // Always call useEffect hooks unconditionally
   useEffect(() => {
     console.log('🎮 HostGame: loadGameData and initializeSession effect triggered');
+    console.log('🎮 HostGame: Effect sessionId state:', sessionId);
     loadGameData();
-    initializeSession();
-  }, []);
+    
+    // Only initialize if we don't have a sessionId yet, or if we have an existingSessionId that's different
+    if (!sessionId || (existingSessionId && sessionId !== existingSessionId)) {
+      console.log('🎮 HostGame: Calling initializeSession because:', {
+        noSessionId: !sessionId,
+        hasExistingSessionId: !!existingSessionId,
+        sessionIdMismatch: existingSessionId && sessionId !== existingSessionId
+      });
+      initializeSession();
+    } else {
+      console.log('🎮 HostGame: Skipping initializeSession, sessionId already set:', sessionId);
+      // Load custom data if sessionId is already available
+      if (sessionId) {
+        loadCustomQuestions(sessionId);
+        loadCustomSponsorsData(sessionId);
+      }
+    }
+  }, [existingSessionId]); // ✅ FIXED: Depend on existingSessionId to handle prop changes
 
 
   // NEW: If starting in creator, set initial phase and open creator
@@ -398,16 +416,12 @@ export const HostGame: React.FC<HostGameProps> = ({
   };
 
   const initializeSession = async () => {
-    // Prevent duplicate session creation (e.g., from React StrictMode)
-    if (sessionId || existingSessionId) {
-      console.log('🔄 Session already exists, skipping creation:', sessionId || existingSessionId);
-      console.log('🔄 DEBUG: Session state details:', {
-        currentSessionId: sessionId,
-        existingSessionIdProp: existingSessionId,
-        willUseExisting: !!existingSessionId
-      });
-      return;
-    }
+    console.log('🎮 HostGame: initializeSession called with:', {
+      currentSessionId: sessionId,
+      existingSessionIdProp: existingSessionId,
+      hasExistingSession: !!existingSessionId,
+      hasCurrentSession: !!sessionId
+    });
     
     try {
       let finalSessionId: string;
@@ -417,14 +431,23 @@ export const HostGame: React.FC<HostGameProps> = ({
         console.log('🔄 Loading existing session:', existingSessionId);
         console.log('🔄 DEBUG: Setting sessionId to existingSessionId:', existingSessionId);
         finalSessionId = existingSessionId;
-        setSessionId(finalSessionId);
+        // Only set if it's different from current state
+        if (sessionId !== finalSessionId) {
+          setSessionId(finalSessionId);
+          console.log('🔄 DEBUG: sessionId state updated to:', finalSessionId);
+        }
         console.log('🔄 DEBUG: sessionId state should now be:', existingSessionId);
-      } else {
+      } else if (!sessionId) {
+        // Only create new session if we don't have one already
         clearAllSessionData();
         finalSessionId = await createSession(initialTitle);
         setSessionId(finalSessionId);
         console.log('✅ Created session:', finalSessionId);
         console.log('✅ DEBUG: New session created and sessionId set to:', finalSessionId);
+      } else {
+        // Use existing sessionId from state
+        finalSessionId = sessionId;
+        console.log('🔄 Using existing sessionId from state:', finalSessionId);
       }
       
       // ✅ NEW: Load custom data immediately after sessionId is established
@@ -934,6 +957,13 @@ export const HostGame: React.FC<HostGameProps> = ({
 
   const loadCustomQuestions = async (targetSessionId?: string) => {
     const sessionIdToUse = targetSessionId || sessionId;
+    
+    console.log('📝 HostGame: loadCustomQuestions called with:', {
+      targetSessionId,
+      currentSessionId: sessionId,
+      sessionIdToUse,
+      isValidSessionId: !!(sessionIdToUse && sessionIdToUse.trim() !== '')
+    });
     
     if (!sessionIdToUse || sessionIdToUse.trim() === '') {
       console.warn('⚠️ Cannot load custom questions - invalid session ID');
