@@ -84,7 +84,7 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
   useEffect(() => {
     setShowQuestion(true);
     
-    if (!hasPlayedQuestionAudio && question.prompt && !isJumbotron) {
+    if (!hasPlayedQuestionAudio && question.prompt) {
       playAudio(question.prompt, {
         priority: true,
         onComplete: () => {
@@ -98,14 +98,14 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
       });
       setHasPlayedQuestionAudio(true);
     } else {
-      // For jumbotron or when no audio, show content immediately
+      // When no audio, show content immediately
       setAudioComplete(true);
       setTimeout(() => {
         setShowOptions(true);
         setTimerActive(true);
       }, 1000);
     }
-  }, [hasPlayedQuestionAudio, question.prompt, playAudio, isJumbotron]);
+  }, [question, hasPlayedQuestionAudio, playAudio]);
 
   const handleTimeUp = () => {
     setTimerActive(false);
@@ -138,7 +138,7 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
               </div>
               
               {/* Audio Controls - Only show for presenter */}
-              {!isJumbotron && !isPlaying && (
+              {!isJumbotron && (
                 <div className="flex justify-center mb-4">
                   <AudioControls
                     isPlaying={isPlaying}
@@ -147,17 +147,6 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
                     volume={volume}
                     onVolumeChange={changeVolume}
                   />
-                </div>
-              )}
-              
-              {/* Audio Status for Jumbotron */}
-              {isJumbotron && isPlaying && (
-                <div className="text-center mb-4">
-                  <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-400/50">
-                    <p className="text-blue-300 text-sm flex items-center justify-center gap-2">
-                      🔊 <span className="animate-pulse">Reading question aloud...</span>
-                    </p>
-                  </div>
                 </div>
               )}
             </div>
