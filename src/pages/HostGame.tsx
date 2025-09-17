@@ -49,6 +49,8 @@ export const HostGame: React.FC<HostGameProps> = ({
   const [sessionId, setSessionId] = useState<string>(existingSessionId || '');
   const [loading, setLoading] = useState(true);
   const [questionResults, setQuestionResults] = useState<any>(null);
+  const [customQuestions, setCustomQuestions] = useState<any[]>([]);
+  const [customSponsors, setCustomSponsors] = useState<any[]>([]);
   
   // ✅ NEW: Host question shuffling state
   const [shuffledHostQuestionData, setShuffledHostQuestionData] = useState<{
@@ -60,12 +62,10 @@ export const HostGame: React.FC<HostGameProps> = ({
   // ✅ NEW: Host controls for display options
   const [showPoints, setShowPoints] = useState(true);
   // ✅ NEW: Question creation state
-  const [customQuestions, setCustomQuestions] = useState<any[]>([]);
   const [showQuestionCreator, setShowQuestionCreator] = useState(false);
   const [showCsvUpload, setShowCsvUpload] = useState(false);
   
   // ✅ NEW: Sponsor management state
-  const [customSponsors, setCustomSponsors] = useState<any[]>([]);
   const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
   
   // ✅ NEW: Jumbotron display state
@@ -1268,9 +1268,11 @@ export const HostGame: React.FC<HostGameProps> = ({
             getCurrentQuestions={getCurrentQuestions}
             getAllStreaks={getAllStreaks}
             currentSponsorIndex={currentSponsorIndex}
+            onNextSponsor={handleNextSponsor}
             getQuestionResults={getQuestionResults}
             isConnected={isConnected}
             isHealthy={isHealthy}
+            fallbackPolling={fallbackPolling}
             reconnectAttempts={0}
             onRefreshPlayers={reloadPlayers}
           />
