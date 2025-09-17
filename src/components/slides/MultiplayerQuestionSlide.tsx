@@ -84,12 +84,37 @@ export const MultiplayerQuestionSlide: React.FC<MultiplayerQuestionSlideProps> =
   useEffect(() => {
     setShowQuestion(true);
     
-    if (!hasPlayedQuestionAudio && question.prompt) {
+    if (!hasPlayedQuestionAudio && question.prompt && !isJumbotron) {
       playAudio(question.prompt, {
         priority: true,
         onComplete: () => {
           setAudioComplete(true);
           // Start timer and show options after audio completes
+          setTimeout(() => {
+            setShowOptions(true);
+            setTimerActive(true);
+          }, 1000);
+        }
+      });
+      setHasPlayedQuestionAudio(true);
+    } else if (!hasPlayedQuestionAudio && question.prompt && isJumbotron) {
+      // ✅ FIXED: Enable question audio on jumbotron
+      console.log('📺 Jumbotron: Playing question audio:', question.prompt.substring(0, 50));
+      playAudio(question.prompt, {
+        priority: true,
+        onComplete: () => {
+          console.log('✅ Jumbotron: Question audio completed');
+          setAudioComplete(true);
+          // Start timer and show options after audio completes
+          setTimeout(() => {
+            setShowOptions(true);
+            setTimerActive(true);
+          }, 1000);
+        },
+        onError: (error) => {
+          console.error('❌ Jumbotron: Question audio error:', error);
+          // Show content even if audio fails
+          setAudioComplete(true);
           setTimeout(() => {
             setShowOptions(true);
             setTimerActive(true);

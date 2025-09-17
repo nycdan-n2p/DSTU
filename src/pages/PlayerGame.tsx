@@ -863,6 +863,7 @@ export const PlayerGame: React.FC = () => {
           playerId={playerId}
           playerName={playerName}
           playerTotalScore={playerTotalScore}
+          playerTotalScore={playerTotalScore}
           gameData={{
             ...gameData,
             questions: getCurrentQuestions

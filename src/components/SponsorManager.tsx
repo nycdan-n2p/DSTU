@@ -174,7 +174,7 @@ export const SponsorManager: React.FC<SponsorManagerProps> = ({
       setShowAddAnotherPrompt(true);
       
       console.log('✅ Sponsor message saved successfully');
-      onSponsorsChanged(); // Refresh the sponsors list
+      // Real-time sync will handle the UI update automatically
       
     } catch (err) {
       console.error('❌ Error saving sponsor message:', err);
@@ -203,7 +203,7 @@ export const SponsorManager: React.FC<SponsorManagerProps> = ({
     try {
       await onDeleteSponsor(sponsorId);
       console.log('✅ Sponsor message deleted successfully');
-      onSponsorsChanged(); // Refresh the sponsors list
+      // Real-time sync will handle the UI update automatically
     } catch (err) {
       console.error('❌ Error deleting sponsor message:', err);
       setError(err instanceof Error ? err.message : 'Failed to delete sponsor message.');

@@ -268,6 +268,43 @@ export const PlayerResultsSlide: React.FC<PlayerResultsSlideProps> = ({
                   })()}
                 </div>
               )}
+              
+              {/* ✅ NEW: Show player's total score prominently */}
+              <div className="mt-4 bg-white/10 rounded-lg p-4 border border-white/30">
+                <h4 className="text-lg font-bold text-blue-400 mb-2">Your Total Score:</h4>
+                <div className="text-3xl font-bold text-white">{playerTotalScore} points</div>
+              </div>
+
+              {/* ✅ NEW: Show the correct answer */}
+              {gameData.questions?.[questionIndex] && (
+                <div className="mt-4 bg-white/10 rounded-lg p-4 border border-white/30">
+                  <h4 className="text-lg font-bold text-yellow-400 mb-2">Correct Answer:</h4>
+                  {(() => {
+                    const currentQuestion = gameData.questions[questionIndex];
+                    if (currentQuestion.type === 'multiple_choice') {
+                      if (currentQuestion.correct_index === -1) {
+                        // Trick question - all answers are correct
+                        return (
+                          <p className="text-white">
+                            <span className="font-bold text-yellow-300">Trick Question!</span> All answers were correct!
+                          </p>
+                        );
+                      } else {
+                        // Regular question with one correct answer
+                        const correctOption = currentQuestion.options[currentQuestion.correct_index];
+                        return (
+                          <p className="text-white">
+                            <span className="font-bold text-yellow-300">
+                              {String.fromCharCode(65 + currentQuestion.correct_index)}.
+                            </span> {correctOption}
+                          </p>
+                        );
+                      }
+                    }
+                    return <p className="text-gray-300">Answer not available</p>;
+                  })()}
+                </div>
+              )}
             </div>
 
             {/* Speed Awards */}

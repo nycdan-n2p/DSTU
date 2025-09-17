@@ -210,7 +210,7 @@ export const ResultsSlide: React.FC<ResultsSlideProps> = ({
   }, []);
 
   useEffect(() => {
-    if (showSnarkyComment && snarkyComment) {
+    if (showSnarkyComment && snarkyComment && !isJumbotron) {
       console.log('📺 ResultsSlide: Playing snarky comment audio:', snarkyComment.substring(0, 50));
       playAudio(snarkyComment, {
         priority: true,
@@ -222,6 +222,31 @@ export const ResultsSlide: React.FC<ResultsSlideProps> = ({
         },
         onError: (error) => {
           console.error('❌ ResultsSlide: Audio error:', error);
+          // Show next button even if audio fails
+          setTimeout(() => {
+            setShowNextButton(true);
+          }, 1000);
+        }
+      });
+    } else if (showSnarkyComment && snarkyComment && isJumbotron) {
+      // ✅ FIXED: Enable snarky comment audio on jumbotron
+      console.log('📺 Jumbotron ResultsSlide: Playing snarky comment audio:', snarkyComment.substring(0, 50));
+      playAudio(snarkyComment, {
+        priority: true,
+        onComplete: () => {
+          console.log('✅ Jumbotron ResultsSlide: Audio completed successfully');
+          setTimeout(() => {
+            setShowNextButton(true);
+          }, 1000);
+        },
+        onError: (error) => {
+          console.error('❌ Jumbotron ResultsSlide: Audio error:', error);
+          console.log('🔊 Jumbotron results audio error details:', {
+            comment: snarkyComment.substring(0, 100),
+            userAgent: navigator.userAgent,
+            isNewWindow: window.opener !== null,
+            timestamp: new Date().toISOString()
+          });
           // Show next button even if audio fails
           setTimeout(() => {
             setShowNextButton(true);

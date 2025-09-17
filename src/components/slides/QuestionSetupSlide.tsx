@@ -59,7 +59,7 @@ export const QuestionSetupSlide: React.FC<QuestionSetupSlideProps> = ({
       }
 
       console.log('✅ Question deleted successfully');
-      onQuestionsChanged(); // Refresh the questions list
+      // Real-time sync will handle the UI update automatically
     } catch (error) {
       console.error('Error deleting question:', error);
       alert('Failed to delete question. Please try again.');

@@ -169,11 +169,9 @@ export const GamePhaseRenderer: React.FC<GamePhaseRendererProps> = ({
           onOpenCsvUpload={onOpenCsvUpload}
           onStartGame={onStartGameWithCustomQuestions}
           onRestartGame={onRestartGame}
-          onQuestionsChanged={onQuestionsChanged}
           onAddSponsor={onAddSponsor}
           onDeleteSponsor={onDeleteSponsor}
           onUpdateSponsorBreaks={onUpdateSponsorBreaks}
-          onSponsorsChanged={onSponsorsChanged}
           showPoints={showPoints}
           onTogglePoints={onTogglePoints}
         />

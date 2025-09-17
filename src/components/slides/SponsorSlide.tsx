@@ -18,17 +18,25 @@ export const SponsorSlide: React.FC<SponsorSlideProps> = ({ sponsor, onNext, isJ
 
   useEffect(() => {
     setShowContent(true);
-    // Play the sponsor text as speech with enhanced logging
-    console.log('📺 SponsorSlide: Playing audio for sponsor text:', sponsor.text.substring(0, 50));
-    playAudio(sponsor.text, {
-      priority: true,
-      onComplete: () => {
-        console.log('✅ SponsorSlide: Audio completed successfully');
-      },
-      onError: (error) => {
-        console.error('❌ SponsorSlide: Audio error:', error);
-      }
-    });
+    // ✅ ENHANCED: Play the sponsor text as speech with better logging
+    if (sponsor.text) {
+      console.log('📺 SponsorSlide: Playing audio for sponsor text:', sponsor.text.substring(0, 50));
+      playAudio(sponsor.text, {
+        priority: true,
+        onComplete: () => {
+          console.log('✅ SponsorSlide: Audio completed successfully');
+        },
+        onError: (error) => {
+          console.error('❌ SponsorSlide: Audio error:', error);
+          console.log('🔊 SponsorSlide audio error details:', {
+            sponsorText: sponsor.text.substring(0, 100),
+            userAgent: navigator.userAgent,
+            isJumbotron,
+            timestamp: new Date().toISOString()
+          });
+        }
+      });
+    }
     
     const timer = setTimeout(() => {
       setShowButton(true);

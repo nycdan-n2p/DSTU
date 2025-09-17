@@ -1277,11 +1277,9 @@ export const HostGame: React.FC<HostGameProps> = ({
             getCurrentQuestions={getCurrentQuestions}
             getAllStreaks={getAllStreaks}
             currentSponsorIndex={currentSponsorIndex}
-            onNextSponsor={handleNextSponsor}
             getQuestionResults={getQuestionResults}
             isConnected={isConnected}
             isHealthy={isHealthy}
-            fallbackPolling={fallbackPolling}
             reconnectAttempts={0}
             onRefreshPlayers={reloadPlayers}
           />

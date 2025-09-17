@@ -368,15 +368,13 @@ export const JumbotronDisplay: React.FC = () => {
         onOpenCsvUpload={() => {}}
         onCloseCsvUpload={() => {}}
         onCsvQuestionsUploaded={() => {}}
-        onQuestionsChanged={() => {}}
         onAddSponsor={async () => {}}
         onDeleteSponsor={async () => {}}
         onUpdateSponsorBreaks={async () => {}}
-        onSponsorsChanged={() => {}}
         getCurrentQuestions={getCurrentQuestions}
         getAllStreaks={() => []}
         currentSponsorIndex={session?.current_sponsor_index || 0}
-        onNextSponsor={() => {}} // No-op for jumbotron
+        onNextSponsor={() => {}}
         getQuestionResults={getQuestionResults}
       />
     </div>

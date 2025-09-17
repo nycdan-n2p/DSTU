@@ -94,12 +94,23 @@ export const useAudio = () => {
     const voiceId = import.meta.env.VITE_ELEVENLABS_VOICE_ID;
 
     if (!apiKey || !voiceId) {
-      console.warn('🔇 ElevenLabs API key or Voice ID not configured');
+      console.warn('🔇 ElevenLabs API key or Voice ID not configured', {
+        hasApiKey: !!apiKey,
+        hasVoiceId: !!voiceId,
+        apiKeyPreview: apiKey ? `${apiKey.substring(0, 10)}...` : 'Not set',
+        voiceIdPreview: voiceId ? `${voiceId.substring(0, 10)}...` : 'Not set'
+      });
       onComplete?.();
       return;
     }
 
-    console.log(`🔊 Generating speech for: ${textContent.substring(0, 50)}...`);
+    console.log(`🔊 Generating speech for: ${textContent.substring(0, 50)}...`, {
+      textLength: textContent.length,
+      isNewWindow: window.opener !== null,
+      userAgent: navigator.userAgent.substring(0, 50),
+      currentVolume: volume,
+      isMuted
+    });
     
     try {
       if (!isMountedRef.current) return;
@@ -135,7 +146,10 @@ export const useAudio = () => {
         console.error('❌ ElevenLabs API error:', {
           status: response.status,
           statusText: response.statusText,
-          errorText: errorText.substring(0, 200)
+          errorText: errorText.substring(0, 200),
+          textPreview: textContent.substring(0, 50),
+          apiKeyValid: !!apiKey,
+          voiceIdValid: !!voiceId
         });
         throw new Error(`ElevenLabs API error: ${response.status}`);
       }
@@ -145,6 +159,12 @@ export const useAudio = () => {
       // Convert response to audio blob
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
+      
+      console.log('🎵 Audio blob created successfully:', {
+        blobSize: audioBlob.size,
+        blobType: audioBlob.type,
+        textPreview: textContent.substring(0, 50)
+      });
       
       // Create and play audio
       audioRef.current = new Audio(audioUrl);
@@ -157,7 +177,7 @@ export const useAudio = () => {
         }
 
         audioRef.current.onended = () => {
-          console.log(`✅ Finished playing audio`);
+          console.log(`✅ Finished playing audio:`, textContent.substring(0, 50));
           URL.revokeObjectURL(audioUrl);
           isPlayingRef.current = false;
           
@@ -185,9 +205,11 @@ export const useAudio = () => {
             audioUrl: audioUrl.substring(0, 50),
             volume,
             textPreview: textContent.substring(0, 50),
-            userAgent: navigator.userAgent.substring(0, 50),
+            userAgent: navigator.userAgent,
             isNewWindow: window.opener !== null,
-            autoplayPolicy: 'Check browser autoplay settings if audio fails in new windows'
+            autoplayPolicy: 'Browser autoplay policies may block audio in new windows without user interaction',
+            documentHasFocus: document.hasFocus(),
+            documentVisibilityState: document.visibilityState
           });
           URL.revokeObjectURL(audioUrl);
           isPlayingRef.current = false;
@@ -207,9 +229,12 @@ export const useAudio = () => {
             name: error.name,
             textPreview: textContent.substring(0, 50),
             volume,
-            userAgent: navigator.userAgent.substring(0, 50),
+            userAgent: navigator.userAgent,
             isNewWindow: window.opener !== null,
-            autoplayNote: 'Browser autoplay policies may block audio in new windows without user interaction'
+            autoplayNote: 'Browser autoplay policies may block audio in new windows without user interaction',
+            documentHasFocus: document.hasFocus(),
+            documentVisibilityState: document.visibilityState,
+            audioContextState: (window as any).AudioContext ? 'Available' : 'Not available'
           });
           isPlayingRef.current = false;
           
@@ -224,7 +249,12 @@ export const useAudio = () => {
       });
       
     } catch (error) {
-      console.error('ElevenLabs API error:', error);
+      console.error('❌ ElevenLabs API error:', {
+        error: error instanceof Error ? error.message : error,
+        textPreview: textContent.substring(0, 50),
+        apiKeyConfigured: !!apiKey,
+        voiceIdConfigured: !!voiceId
+      });
       isPlayingRef.current = false;
       
       if (isMountedRef.current) {
