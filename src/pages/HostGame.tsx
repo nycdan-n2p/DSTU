@@ -851,7 +851,7 @@ export const HostGame: React.FC<HostGameProps> = ({
     try {
       await addCustomSponsor(text, imageUrl);
       // Real-time updates will handle the state refresh automatically
-      // Real-time sync will handle the UI update automatically
+      console.log('✅ Added custom sponsor');
     } catch (error) {
       console.error('❌ Error adding sponsor:', error);
       throw error;
@@ -863,7 +863,6 @@ export const HostGame: React.FC<HostGameProps> = ({
     if (!deleteCustomSponsor) return;
     
     try {
-      // Real-time sync will handle the UI update automatically
       await deleteCustomSponsor(sponsorId);
       // Real-time updates will handle the state refresh automatically
       console.log('✅ Deleted custom sponsor');
@@ -910,7 +909,7 @@ export const HostGame: React.FC<HostGameProps> = ({
   const handleQuestionAdded = () => {
     console.log('✅ Question added successfully');
     // Real-time updates will handle the state refresh automatically
-    // Real-time sync will handle the UI update automatically
+    setShowQuestionCreator(false);
   };
 
   const handleOpenCsvUpload = () => {
@@ -919,7 +918,6 @@ export const HostGame: React.FC<HostGameProps> = ({
 
   const handleCloseCsvUpload = () => {
     setShowCsvUpload(false);
-    // Real-time sync will handle the UI update automatically
   };
 
   const handleCsvQuestionsUploaded = async (uploadedQuestions: UploadedQuestion[]) => {
