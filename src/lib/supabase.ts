@@ -10,8 +10,7 @@ console.log('🔧 Supabase Configuration:', {
   urlValue: supabaseUrl,
   keyPreview: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'Not set',
   envMode: import.meta.env.MODE,
-  envDev: import.meta.env.DEV,
-  currentUrl: typeof window !== 'undefined' ? window.location.href : 'N/A'
+  envDev: import.meta.env.DEV
 });
 
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -24,14 +23,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
     setTimeout(() => {
       alert('Supabase configuration missing! Please check your .env file and restart the development server.');
     }, 1000);
-  }
-} else {
-  // Check for HTTPS/HTTP protocol mismatch
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && import.meta.env.DEV) {
-    console.warn('⚠️ PROTOCOL MISMATCH DETECTED!');
-    console.warn('You are accessing the app via HTTPS but this is a local development server.');
-    console.warn('Please use HTTP instead: http://localhost:5173/');
-    console.warn('HTTPS on localhost can cause "Failed to fetch" errors with Supabase.');
   }
 }
 
@@ -69,7 +60,6 @@ export const supabase = createClient(
 // Test the connection and log results
 const testConnection = async () => {
   try {
-    console.log('🔍 Testing Supabase connection...');
     const { data, error } = await supabase.from('game_sessions').select('count').limit(1);
     if (error) {
       console.error('❌ Supabase connection test failed:', error);
@@ -78,18 +68,6 @@ const testConnection = async () => {
       console.warn('2. Verify VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env');
       console.warn('3. Ensure Realtime is enabled in Supabase dashboard');
       console.warn('4. Check your internet connection');
-      console.warn('5. Make sure you are using HTTP (not HTTPS) for localhost development');
-      
-      // Show user-friendly error for connection issues
-      if (typeof window !== 'undefined') {
-        setTimeout(() => {
-          const isHttps = window.location.protocol === 'https:';
-          const message = isHttps 
-            ? 'Connection failed! Please use http://localhost:5173/ instead of https://localhost:5173/'
-            : 'Supabase connection failed! Please check your .env file and ensure your Supabase project is active.';
-          alert(message);
-        }, 2000);
-      }
     } else {
       console.log('✅ Supabase connection test successful');
     }
@@ -100,18 +78,6 @@ const testConnection = async () => {
     console.warn('- Your internet connection');
     console.warn('- Firewall/VPN settings');
     console.warn('- Supabase project status at https://supabase.com/dashboard');
-    console.warn('- Use HTTP instead of HTTPS for localhost: http://localhost:5173/');
-    
-    // Show user-friendly error for network issues
-    if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        const isHttps = window.location.protocol === 'https:';
-        const message = isHttps 
-          ? 'Network error! Please use http://localhost:5173/ instead of https://localhost:5173/'
-          : 'Network error connecting to Supabase! Please check your internet connection and Supabase project status.';
-        alert(message);
-      }, 2000);
-    }
   }
 };
 
