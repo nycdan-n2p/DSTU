@@ -41,13 +41,6 @@ export const HostGame: React.FC<HostGameProps> = ({
   const { user, signOut } = useAuth();
   const initialTitle = quizTitle || 'Untitled Quiz';
   
-    existingSessionId,
-    startInQuestionCreator,
-    quizTitle,
-    initialTitle,
-    userEmail: user?.email
-  });
-  
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [selectedIntroText, setSelectedIntroText] = useState<string>('');
   const [currentPhase, setCurrentPhase] = useState<GamePhase>('welcome');
@@ -56,8 +49,6 @@ export const HostGame: React.FC<HostGameProps> = ({
   const [sessionId, setSessionId] = useState<string>(existingSessionId || '');
   const [loading, setLoading] = useState(true);
   const [questionResults, setQuestionResults] = useState<any>(null);
-    customQuestions = [],
-    customSponsors = [],
   
   // ✅ NEW: Host question shuffling state
   const [shuffledHostQuestionData, setShuffledHostQuestionData] = useState<{
