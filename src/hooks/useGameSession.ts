@@ -126,6 +126,23 @@ export const useGameSession = (sessionId?: string) => {
     setPlayers(prev => prev.filter(p => p.id !== playerId));
   }, []);
 
+  // Handle custom question changes
+  const handleCustomQuestionChange = useCallback((event: string, question: any) => {
+    if (!isMountedRef.current) return;
+    
+    console.log('📝 Realtime custom question change:', { event, question });
+    // Trigger a callback to parent component to reload questions
+    // This will be handled by the parent component's state management
+  }, []);
+
+  // Handle custom sponsor changes
+  const handleCustomSponsorChange = useCallback((event: string, sponsor: any) => {
+    if (!isMountedRef.current) return;
+    
+    console.log('📺 Realtime custom sponsor change:', { event, sponsor });
+    // Trigger a callback to parent component to reload sponsors
+    // This will be handled by the parent component's state management
+  }, []);
   // Initialize realtime sync
   const {
     isConnected,
@@ -140,6 +157,8 @@ export const useGameSession = (sessionId?: string) => {
     onPlayerJoin: handlePlayerJoin,
     onPlayerUpdate: handlePlayerUpdate,
     onPlayerLeave: handlePlayerLeave,
+    onCustomQuestionChange: handleCustomQuestionChange,
+    onCustomSponsorChange: handleCustomSponsorChange,
     enableTelemetry: true
   });
 
@@ -932,6 +951,9 @@ export const useGameSession = (sessionId?: string) => {
     // New realtime functions
     broadcastStateUpdate,
     broadcastPlayerJoin,
-    getTelemetryData
+    getTelemetryData,
+    // Custom content change handlers
+    handleCustomQuestionChange,
+    handleCustomSponsorChange
   };
 };

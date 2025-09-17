@@ -100,7 +100,9 @@ export const HostGame: React.FC<HostGameProps> = ({
     deleteCustomSponsor,
     clearAllPlayers,
     broadcastStateUpdate,
-    getTelemetryData
+    getTelemetryData,
+    handleCustomQuestionChange,
+    handleCustomSponsorChange
   } = useGameSession(sessionId || undefined);
 
   // ✅ DEBUG: Log when HostGame re-renders
@@ -798,13 +800,48 @@ export const HostGame: React.FC<HostGameProps> = ({
     }
   };
 
+  // ✅ NEW: Handle real-time custom question changes
+  const handleRealtimeQuestionChange = useCallback((event: string, question: any) => {
+    console.log('📝 Real-time question change received:', { event, question });
+    
+    if (event === 'INSERT') {
+      setCustomQuestions(prev => [...prev, question]);
+    } else if (event === 'UPDATE') {
+      setCustomQuestions(prev => prev.map(q => q.id === question.id ? question : q));
+    } else if (event === 'DELETE') {
+      setCustomQuestions(prev => prev.filter(q => q.id !== question.id));
+    }
+  }, []);
+
+  // ✅ NEW: Handle real-time custom sponsor changes
+  const handleRealtimeSponsorChange = useCallback((event: string, sponsor: any) => {
+    console.log('📺 Real-time sponsor change received:', { event, sponsor });
+    
+    if (event === 'INSERT') {
+      setCustomSponsors(prev => [...prev, sponsor]);
+    } else if (event === 'UPDATE') {
+      setCustomSponsors(prev => prev.map(s => s.id === sponsor.id ? sponsor : s));
+    } else if (event === 'DELETE') {
+      setCustomSponsors(prev => prev.filter(s => s.id !== sponsor.id));
+    }
+  }, []);
+
+  // ✅ NEW: Connect real-time handlers
+  useEffect(() => {
+    if (handleCustomQuestionChange) {
+      handleCustomQuestionChange(handleRealtimeQuestionChange);
+    }
+    if (handleCustomSponsorChange) {
+      handleCustomSponsorChange(handleRealtimeSponsorChange);
+    }
+  }, [handleCustomQuestionChange, handleCustomSponsorChange, handleRealtimeQuestionChange, handleRealtimeSponsorChange]);
   // ✅ NEW: Add sponsor handler
   const handleAddSponsor = async (text: string, imageUrl?: string | null) => {
     if (!sessionId || !addCustomSponsor) return;
     
     try {
       await addCustomSponsor(text, imageUrl);
-      await loadCustomSponsorsData(); // Reload sponsors
+      // Real-time updates will handle the state refresh automatically
       console.log('✅ Added custom sponsor');
     } catch (error) {
       console.error('❌ Error adding sponsor:', error);
@@ -818,7 +855,7 @@ export const HostGame: React.FC<HostGameProps> = ({
     
     try {
       await deleteCustomSponsor(sponsorId);
-      await loadCustomSponsorsData(); // Reload sponsors
+      // Real-time updates will handle the state refresh automatically
       console.log('✅ Deleted custom sponsor');
     } catch (error) {
       console.error('❌ Error deleting sponsor:', error);
@@ -862,7 +899,7 @@ export const HostGame: React.FC<HostGameProps> = ({
 
   const handleQuestionAdded = () => {
     console.log('✅ Question added successfully');
-    loadCustomQuestions(); // Reload the questions list
+    // Real-time updates will handle the state refresh automatically
     setShowQuestionCreator(false);
   };
 
@@ -906,8 +943,7 @@ export const HostGame: React.FC<HostGameProps> = ({
 
       console.log('✅ Successfully saved', data.length, 'questions from CSV');
       
-      // Reload the questions list and close the upload section
-      await loadCustomQuestions();
+      // Real-time updates will handle the state refresh automatically
       setShowCsvUpload(false);
       
       alert(`Successfully saved ${data.length} questions from CSV!`);

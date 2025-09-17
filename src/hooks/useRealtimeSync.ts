@@ -19,6 +19,8 @@ interface RealtimeSyncOptions {
   onPlayerJoin?: (player: any) => void;
   onPlayerUpdate?: (player: any) => void;
   onPlayerLeave?: (playerId: string) => void;
+  onCustomQuestionChange?: (event: string, question: any) => void;
+  onCustomSponsorChange?: (event: string, sponsor: any) => void;
   enableTelemetry?: boolean;
 }
 
@@ -36,6 +38,8 @@ export const useRealtimeSync = ({
   onPlayerJoin,
   onPlayerUpdate,
   onPlayerLeave,
+  onCustomQuestionChange,
+  onCustomSponsorChange,
   enableTelemetry = true
 }: RealtimeSyncOptions) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -413,6 +417,18 @@ export const useRealtimeSync = ({
               schema: 'public',
               table: 'players',
               filter: `session_id=eq.${sessionId}`
+            },
+            {
+              event: '*',
+              schema: 'public',
+              table: 'custom_questions',
+              filter: `session_id=eq.${sessionId}`
+            },
+            {
+              event: '*',
+              schema: 'public',
+              table: 'custom_sponsors',
+              filter: `session_id=eq.${sessionId}`
             }
           ]
         }
@@ -458,6 +474,32 @@ export const useRealtimeSync = ({
           onPlayerUpdate(payload.new);
         } else if (payload.eventType === 'DELETE' && onPlayerLeave) {
           onPlayerLeave(payload.old?.id);
+        }
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'custom_questions',
+        filter: `session_id=eq.${sessionId}`
+      }, (payload) => {
+        console.log('📝 Custom question change:', payload);
+        lastHeartbeatRef.current = Date.now();
+        
+        if (onCustomQuestionChange) {
+          onCustomQuestionChange(payload.eventType, payload.new || payload.old);
+        }
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'custom_sponsors',
+        filter: `session_id=eq.${sessionId}`
+      }, (payload) => {
+        console.log('📺 Custom sponsor change:', payload);
+        lastHeartbeatRef.current = Date.now();
+        
+        if (onCustomSponsorChange) {
+          onCustomSponsorChange(payload.eventType, payload.new || payload.old);
         }
       })
       .subscribe((status) => {
