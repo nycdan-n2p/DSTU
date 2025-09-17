@@ -101,6 +101,7 @@ export type Database = {
           version: number;
           updated_at: string;
           title: string | null; // ✅ NEW: Quiz title
+          current_sponsor_index: number | null; // ✅ NEW: Current sponsor index for jumbotron sync
         };
         Insert: {
           id?: string;
@@ -115,6 +116,7 @@ export type Database = {
           version?: number;
           updated_at?: string;
           title?: string | null; // ✅ NEW: Quiz title
+          current_sponsor_index?: number | null; // ✅ NEW: Current sponsor index for jumbotron sync
         };
         Update: {
           id?: string;
@@ -129,6 +131,7 @@ export type Database = {
           version?: number;
           updated_at?: string;
           title?: string | null; // ✅ NEW: Quiz title
+          current_sponsor_index?: number | null; // ✅ NEW: Current sponsor index for jumbotron sync
         };
       };
       players: {

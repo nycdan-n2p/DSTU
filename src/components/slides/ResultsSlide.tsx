@@ -211,8 +211,18 @@ export const ResultsSlide: React.FC<ResultsSlideProps> = ({
 
   useEffect(() => {
     if (showSnarkyComment && snarkyComment) {
+      console.log('📺 ResultsSlide: Playing snarky comment audio:', snarkyComment.substring(0, 50));
       playAudio(snarkyComment, {
+        priority: true,
         onComplete: () => {
+          console.log('✅ ResultsSlide: Audio completed successfully');
+          setTimeout(() => {
+            setShowNextButton(true);
+          }, 1000);
+        },
+        onError: (error) => {
+          console.error('❌ ResultsSlide: Audio error:', error);
+          // Show next button even if audio fails
           setTimeout(() => {
             setShowNextButton(true);
           }, 1000);

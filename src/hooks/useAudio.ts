@@ -131,6 +131,12 @@ export const useAudio = () => {
       });
 
       if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('❌ ElevenLabs API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText.substring(0, 200)
+        });
         throw new Error(`ElevenLabs API error: ${response.status}`);
       }
 
@@ -174,7 +180,15 @@ export const useAudio = () => {
         };
         
         audioRef.current.onerror = (error) => {
-          console.error('Audio playback error:', error);
+          console.error('❌ Audio playback error:', {
+            error,
+            audioUrl: audioUrl.substring(0, 50),
+            volume,
+            textPreview: textContent.substring(0, 50),
+            userAgent: navigator.userAgent.substring(0, 50),
+            isNewWindow: window.opener !== null,
+            autoplayPolicy: 'Check browser autoplay settings if audio fails in new windows'
+          });
           URL.revokeObjectURL(audioUrl);
           isPlayingRef.current = false;
           
@@ -188,7 +202,15 @@ export const useAudio = () => {
         };
         
         audioRef.current.play().catch((error) => {
-          console.error('Audio play failed:', error);
+          console.error('❌ Audio play failed:', {
+            error: error.message || error,
+            name: error.name,
+            textPreview: textContent.substring(0, 50),
+            volume,
+            userAgent: navigator.userAgent.substring(0, 50),
+            isNewWindow: window.opener !== null,
+            autoplayNote: 'Browser autoplay policies may block audio in new windows without user interaction'
+          });
           isPlayingRef.current = false;
           
           if (isMountedRef.current) {

@@ -30,7 +30,8 @@ export const useJumbotronDisplay = (sessionId?: string) => {
       current_phase: gameState.phase,
       current_question: gameState.currentQuestionIndex,
       question_start_time: gameState.questionStartTime,
-      current_question_options_shuffled: gameState.shuffledOptions
+      current_question_options_shuffled: gameState.shuffledOptions,
+      current_sponsor_index: gameState.currentSponsorIndex
     } : null);
     
     console.log('📺 Jumbotron state updated');

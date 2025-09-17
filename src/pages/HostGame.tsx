@@ -164,8 +164,23 @@ export const HostGame: React.FC<HostGameProps> = ({
 
   // ✅ NEW: Handle next sponsor function
   const handleNextSponsor = () => {
-    setCurrentSponsorIndex(prev => prev + 1);
-    console.log('🔄 Moving to next sponsor, index:', currentSponsorIndex + 1);
+    const nextIndex = currentSponsorIndex + 1;
+    setCurrentSponsorIndex(nextIndex);
+    console.log('🔄 Moving to next sponsor, index:', nextIndex);
+    
+    // Update session with new sponsor index for jumbotron sync
+    if (updateSessionPhase && session) {
+      updateSessionPhase(
+        session.current_phase,
+        session.current_question,
+        session.question_start_time,
+        session.current_question_options_shuffled,
+        session.num_sponsor_breaks,
+        nextIndex
+      ).catch(error => {
+        console.error('❌ Failed to update sponsor index:', error);
+      });
+    }
   };
 
   // ✅ NEW: Handle opening jumbotron display
@@ -526,7 +541,8 @@ export const HostGame: React.FC<HostGameProps> = ({
         case 'waiting':
           console.log('🎬 Moving from waiting to sponsor1 - Starting the chaos!');
           setCurrentPhase('sponsor1');
-          await updateSessionPhase('sponsor1', 0, new Date().toISOString());
+          setCurrentSponsorIndex(0); // Reset sponsor index
+          await updateSessionPhase('sponsor1', 0, new Date().toISOString(), null, undefined, 0);
           
           // Broadcast sponsor phase to jumbotron
           if (broadcastStateUpdate) {
@@ -625,6 +641,8 @@ export const HostGame: React.FC<HostGameProps> = ({
             if (currentQuestionIndex === 1) {
               console.log('📺 Moving to sponsor2');
               setCurrentPhase('sponsor2');
+              setCurrentSponsorIndex(0); // Reset sponsor index for sponsor2
+              await updateSessionPhase('sponsor2', currentQuestionIndex, undefined, undefined, undefined, 0);
               
               // Broadcast state update
               if (broadcastStateUpdate) {

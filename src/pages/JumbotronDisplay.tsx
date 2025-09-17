@@ -375,8 +375,8 @@ export const JumbotronDisplay: React.FC = () => {
         onSponsorsChanged={() => {}}
         getCurrentQuestions={getCurrentQuestions}
         getAllStreaks={() => []}
-        currentSponsorIndex={currentSponsorIndex}
-        onNextSponsor={handleNextSponsor}
+        currentSponsorIndex={session?.current_sponsor_index || 0}
+        onNextSponsor={() => {}} // No-op for jumbotron
         getQuestionResults={getQuestionResults}
       />
     </div>

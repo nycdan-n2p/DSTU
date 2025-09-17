@@ -18,15 +18,23 @@ export const SponsorSlide: React.FC<SponsorSlideProps> = ({ sponsor, onNext, isJ
 
   useEffect(() => {
     setShowContent(true);
-    // Play the sponsor text as speech
-    playAudio(sponsor.text);
+    // Play the sponsor text as speech with enhanced logging
+    console.log('📺 SponsorSlide: Playing audio for sponsor text:', sponsor.text.substring(0, 50));
+    playAudio(sponsor.text, {
+      priority: true,
+      onComplete: () => {
+        console.log('✅ SponsorSlide: Audio completed successfully');
+      },
+      onError: (error) => {
+        console.error('❌ SponsorSlide: Audio error:', error);
+      }
+    });
     
     const timer = setTimeout(() => {
       setShowButton(true);
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex flex-col items-center justify-center p-8 text-white relative overflow-hidden">

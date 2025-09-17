@@ -624,7 +624,8 @@ export const useGameSession = (sessionId?: string) => {
     questionIndex?: number,
     questionStartTime?: string,
     shuffledOptions?: string[] | null,
-    numSponsorBreaks?: number
+    numSponsorBreaks?: number,
+    currentSponsorIndex?: number
   ) => {
     if (!session) return;
 
@@ -645,6 +646,7 @@ export const useGameSession = (sessionId?: string) => {
       if (questionStartTime !== undefined) updates.question_start_time = questionStartTime;
       if (shuffledOptions !== undefined) updates.current_question_options_shuffled = shuffledOptions;
       if (numSponsorBreaks !== undefined) updates.num_sponsor_breaks = numSponsorBreaks;
+      if (currentSponsorIndex !== undefined) updates.current_sponsor_index = currentSponsorIndex;
 
       // Primary attempt including all fields
       let { data, error } = await supabase

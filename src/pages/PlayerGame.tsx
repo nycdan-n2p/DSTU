@@ -852,12 +852,17 @@ export const PlayerGame: React.FC = () => {
 
     // Show results if in results phase
     if (playerPhase === 'results') {
+      // Find current player's total score from players array
+      const currentPlayer = players.find(p => p.id === playerId);
+      const playerTotalScore = currentPlayer?.score || 0;
+      
       return (
         <PlayerResultsSlide
           sessionId={sessionId!}
           questionIndex={playerQuestion}
           playerId={playerId}
           playerName={playerName}
+          playerTotalScore={playerTotalScore}
           gameData={{
             ...gameData,
             questions: getCurrentQuestions
