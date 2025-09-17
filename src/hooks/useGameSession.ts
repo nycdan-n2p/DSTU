@@ -8,6 +8,8 @@ export const useGameSession = (sessionId?: string) => {
   const { user } = useAuth();
   const [session, setSession] = useState<GameSession | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [customQuestions, setCustomQuestions] = useState<any[]>([]);
+  const [customSponsors, setCustomSponsors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
@@ -131,8 +133,22 @@ export const useGameSession = (sessionId?: string) => {
     if (!isMountedRef.current) return;
     
     console.log('📝 Realtime custom question change:', { event, question });
-    // Trigger a callback to parent component to reload questions
-    // This will be handled by the parent component's state management
+    
+    // Update local custom questions state based on real-time events
+    if (event === 'INSERT' && question) {
+      setCustomQuestions(prev => [...prev, question].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ));
+      console.log('✅ Added new custom question via realtime');
+    } else if (event === 'UPDATE' && question) {
+      setCustomQuestions(prev => prev.map(q => 
+        q.id === question.id ? { ...q, ...question } : q
+      ));
+      console.log('✅ Updated custom question via realtime');
+    } else if (event === 'DELETE' && question) {
+      setCustomQuestions(prev => prev.filter(q => q.id !== question.id));
+      console.log('✅ Deleted custom question via realtime');
+    }
   }, []);
 
   // Handle custom sponsor changes
@@ -140,8 +156,22 @@ export const useGameSession = (sessionId?: string) => {
     if (!isMountedRef.current) return;
     
     console.log('📺 Realtime custom sponsor change:', { event, sponsor });
-    // Trigger a callback to parent component to reload sponsors
-    // This will be handled by the parent component's state management
+    
+    // Update local custom sponsors state based on real-time events
+    if (event === 'INSERT' && sponsor) {
+      setCustomSponsors(prev => [...prev, sponsor].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ));
+      console.log('✅ Added new custom sponsor via realtime');
+    } else if (event === 'UPDATE' && sponsor) {
+      setCustomSponsors(prev => prev.map(s => 
+        s.id === sponsor.id ? { ...s, ...sponsor } : s
+      ));
+      console.log('✅ Updated custom sponsor via realtime');
+    } else if (event === 'DELETE' && sponsor) {
+      setCustomSponsors(prev => prev.filter(s => s.id !== sponsor.id));
+      console.log('✅ Deleted custom sponsor via realtime');
+    }
   }, []);
   // Initialize realtime sync
   const {
@@ -157,8 +187,6 @@ export const useGameSession = (sessionId?: string) => {
     onPlayerJoin: handlePlayerJoin,
     onPlayerUpdate: handlePlayerUpdate,
     onPlayerLeave: handlePlayerLeave,
-    onCustomQuestionChange: handleCustomQuestionChange,
-    onCustomSponsorChange: handleCustomSponsorChange,
     enableTelemetry: true
   });
 
@@ -209,9 +237,33 @@ export const useGameSession = (sessionId?: string) => {
         return;
       }
 
+      // Fetch custom questions
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('custom_questions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (questionsError) {
+        console.error('❌ Failed to load custom questions:', questionsError);
+      }
+
+      // Fetch custom sponsors
+      const { data: sponsorsData, error: sponsorsError } = await supabase
+        .from('custom_sponsors')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (sponsorsError) {
+        console.error('❌ Failed to load custom sponsors:', sponsorsError);
+      }
+
       if (isMountedRef.current) {
         setSession(sessionData);
         setPlayers(playersData || []);
+        setCustomQuestions(questionsData || []);
+        setCustomSponsors(sponsorsData || []);
         setError(null);
         versionRef.current = sessionData.version || Date.now();
         console.log('✅ Initial data loaded:', { 
@@ -219,6 +271,8 @@ export const useGameSession = (sessionId?: string) => {
           sessionPhase: sessionData.current_phase,
           sessionQuestion: sessionData.current_question,
           playersCount: playersData?.length || 0,
+          questionsCount: questionsData?.length || 0,
+          sponsorsCount: sponsorsData?.length || 0,
           version: versionRef.current
         });
       }
@@ -929,6 +983,8 @@ export const useGameSession = (sessionId?: string) => {
   return {
     session,
     players,
+    customQuestions,
+    customSponsors,
     loading,
     error,
     // Realtime sync status

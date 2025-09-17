@@ -41,8 +41,6 @@ export const HostGame: React.FC<HostGameProps> = ({
   const { user, signOut } = useAuth();
   const initialTitle = quizTitle || 'Untitled Quiz';
   
-  // ✅ DEBUG: Log props when component renders
-  console.log('🎮 HostGame: Component rendered with props:', {
     existingSessionId,
     startInQuestionCreator,
     quizTitle,
@@ -58,6 +56,8 @@ export const HostGame: React.FC<HostGameProps> = ({
   const [sessionId, setSessionId] = useState<string>(existingSessionId || '');
   const [loading, setLoading] = useState(true);
   const [questionResults, setQuestionResults] = useState<any>(null);
+    customQuestions = [],
+    customSponsors = [],
   
   // ✅ NEW: Host question shuffling state
   const [shuffledHostQuestionData, setShuffledHostQuestionData] = useState<{

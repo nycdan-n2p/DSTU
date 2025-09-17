@@ -6,6 +6,8 @@ import { useRealtimeSync } from './useRealtimeSync';
 export const useJumbotronDisplay = (sessionId?: string) => {
   const [session, setSession] = useState<GameSession | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [customQuestions, setCustomQuestions] = useState<any[]>([]);
+  const [customSponsors, setCustomSponsors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef<boolean>(true);
@@ -71,6 +73,52 @@ export const useJumbotronDisplay = (sessionId?: string) => {
     setPlayers(prev => prev.filter(p => p.id !== playerId));
   }, []);
 
+  // Handle custom question changes (READ-ONLY)
+  const handleCustomQuestionChange = useCallback((event: string, question: any) => {
+    if (!isMountedRef.current) return;
+    
+    console.log('📺 Jumbotron custom question change:', { event, question });
+    
+    // Update local custom questions state based on real-time events
+    if (event === 'INSERT' && question) {
+      setCustomQuestions(prev => [...prev, question].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ));
+      console.log('✅ Jumbotron: Added new custom question via realtime');
+    } else if (event === 'UPDATE' && question) {
+      setCustomQuestions(prev => prev.map(q => 
+        q.id === question.id ? { ...q, ...question } : q
+      ));
+      console.log('✅ Jumbotron: Updated custom question via realtime');
+    } else if (event === 'DELETE' && question) {
+      setCustomQuestions(prev => prev.filter(q => q.id !== question.id));
+      console.log('✅ Jumbotron: Deleted custom question via realtime');
+    }
+  }, []);
+
+  // Handle custom sponsor changes (READ-ONLY)
+  const handleCustomSponsorChange = useCallback((event: string, sponsor: any) => {
+    if (!isMountedRef.current) return;
+    
+    console.log('📺 Jumbotron custom sponsor change:', { event, sponsor });
+    
+    // Update local custom sponsors state based on real-time events
+    if (event === 'INSERT' && sponsor) {
+      setCustomSponsors(prev => [...prev, sponsor].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ));
+      console.log('✅ Jumbotron: Added new custom sponsor via realtime');
+    } else if (event === 'UPDATE' && sponsor) {
+      setCustomSponsors(prev => prev.map(s => 
+        s.id === sponsor.id ? { ...s, ...sponsor } : s
+      ));
+      console.log('✅ Jumbotron: Updated custom sponsor via realtime');
+    } else if (event === 'DELETE' && sponsor) {
+      setCustomSponsors(prev => prev.filter(s => s.id !== sponsor.id));
+      console.log('✅ Jumbotron: Deleted custom sponsor via realtime');
+    }
+  }, []);
+
   // Initialize realtime sync (READ-ONLY)
   const {
     isConnected,
@@ -82,6 +130,8 @@ export const useJumbotronDisplay = (sessionId?: string) => {
     onPlayerJoin: handlePlayerJoin,
     onPlayerUpdate: handlePlayerUpdate,
     onPlayerLeave: handlePlayerLeave,
+    onCustomQuestionChange: handleCustomQuestionChange,
+    onCustomSponsorChange: handleCustomSponsorChange,
     enableTelemetry: false // Disable telemetry for jumbotron
   });
 
@@ -122,15 +172,41 @@ export const useJumbotronDisplay = (sessionId?: string) => {
         return;
       }
 
+      // Fetch custom questions (READ-ONLY)
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('custom_questions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (questionsError) {
+        console.error('❌ Jumbotron: Failed to load custom questions:', questionsError);
+      }
+
+      // Fetch custom sponsors (READ-ONLY)
+      const { data: sponsorsData, error: sponsorsError } = await supabase
+        .from('custom_sponsors')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (sponsorsError) {
+        console.error('❌ Jumbotron: Failed to load custom sponsors:', sponsorsError);
+      }
+
       if (isMountedRef.current) {
         setSession(sessionData);
         setPlayers(playersData || []);
+        setCustomQuestions(questionsData || []);
+        setCustomSponsors(sponsorsData || []);
         setError(null);
         console.log('✅ Jumbotron data loaded:', { 
           sessionId: sessionData.id,
           sessionPhase: sessionData.current_phase,
           sessionQuestion: sessionData.current_question,
-          playersCount: playersData?.length || 0
+          playersCount: playersData?.length || 0,
+          questionsCount: questionsData?.length || 0,
+          sponsorsCount: sponsorsData?.length || 0
         });
       }
     } catch (err) {
@@ -231,6 +307,8 @@ export const useJumbotronDisplay = (sessionId?: string) => {
   return {
     session,
     players,
+    customQuestions,
+    customSponsors,
     loading,
     error,
     // Realtime sync status
